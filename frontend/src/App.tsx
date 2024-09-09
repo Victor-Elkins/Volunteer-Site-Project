@@ -12,7 +12,7 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/" element={<Navigate to="/Home" replace />} />
         <Route path="/Home" element={<Home />} />
-        <Route path="/Notification" element={<Notify />} />
+        <Route path="/Notify" element={<Notify />} />
         {/* Add more routes here as you create more pages */}
       </Routes>
     </div>

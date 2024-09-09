@@ -1,42 +1,39 @@
 import React from 'react';
-import { FaBell } from 'react-icons/fa'; // Importing bell icon from react-icons
+import { FaBell, FaUserCircle } from 'react-icons/fa'; // Import React Icons
+import '../index.css';
+import './Home.css';
 
 const Home = () => {
   return (
-    <div className="bg-gray-200 min-h-screen">
-      {/* Navigation Bar */}
-      <nav className="bg-maroon-600 text-white p-4">
-        <ul className="flex justify-around items-center">
-          <li className="hover:text-gray-300 transition duration-300">
-            <a href="/">Home</a>
+    <nav className="bg-gray-800 w-full fixed top-0 left-0 z-10">
+      <div className="flex justify-between items-center px-4 py-2 max-w-full mx-auto">
+        <div className="text-white text-lg font-bold">
+          Volunteer Events
+        </div>
+        <ul className="flex ml-auto space-x-6">
+          <li>
+            <a className="text-blue-300 hover:text-white" href="#">Home</a>
           </li>
-          <li className="hover:text-gray-300 transition duration-300 flex items-center">
-            <a href="/notifications" className="mr-2">Notifications</a>
-            <FaBell /> {/* Bell Icon */}
+          <li>
+            <a className="text-blue-300 hover:text-white" href="#">History</a>
           </li>
-          <li className="hover:text-gray-300 transition duration-300">
-            <a href="/history">History</a>
+          <li>
+            <a className="text-blue-300 hover:text-white" href="#">Events</a>
           </li>
-          <li className="hover:text-gray-300 transition duration-300">
-            <a href="/events">Events</a>
-          </li>
-          <li className="hover:text-gray-300 transition duration-300">
-            <a href="/profile">Profile</a>
+          <li>
+            <a className="text-blue-300 hover:text-white" href="#">Contact</a>
           </li>
         </ul>
-      </nav>
-
-      {/* Main Content */}
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">Welcome to the Home Page</h1>
-          <p className="text-lg text-gray-600 mb-6">This is a simple page built with Tailwind CSS</p>
-          <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300">
-            Get Started
+        <div className="flex items-center space-x-4 ml-4">
+          <button className="text-white hover:text-gray-400">
+            <FaBell size={24} />
+          </button>
+          <button className="text-white hover:text-gray-400">
+            <FaUserCircle size={24} />
           </button>
         </div>
       </div>
-    </div>
+    </nav>
   );
 };
 
