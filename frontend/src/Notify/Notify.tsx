@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-
+import Header from '../Components/Header';
+import Footer from '../Components/Footer';
 const Notify = () => {
   // Sample notifications state
   const [notifications, setNotifications] = useState([
@@ -15,6 +16,7 @@ const Notify = () => {
 
   return (
     <div className="p-4 max-w-lg mx-auto bg-white shadow-md rounded-lg">
+      <Header />
       <h1 className="text-xl font-bold mb-4">Notifications</h1>
       <ul className="space-y-2">
         {notifications.length === 0 ? (
@@ -33,6 +35,7 @@ const Notify = () => {
           ))
         )}
       </ul>
+      <Footer />
     </div>
   );
 };

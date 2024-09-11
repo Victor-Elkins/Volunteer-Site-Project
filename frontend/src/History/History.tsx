@@ -1,40 +1,49 @@
 import React, { useState } from 'react';
-
-const Notify = () => {
-  // Sample notifications state
-  const [notifications, setNotifications] = useState([
-    { id: 1, message: 'New event assignment' },
-    { id: 2, message: 'Event has been updated' },
-    { id: 3, message: 'Reminder about event' },
+import { ReactElement } from 'react';
+import Header from '../Components/Header';
+import Footer from '../Components/Footer';
+const History = () => {
+  // Sample data for the volunteer history
+  const [volunteerHistory, setVolunteerHistory] = useState([
+    { id: 1, event: 'Beach Cleanup', date: '2024-05-15', status: 'Completed' },
+    { id: 2, event: 'Tree Planting', date: '2024-06-22', status: 'Pending' },
+    { id: 3, event: 'Community Kitchen', date: '2024-07-10', status: 'Completed' },
+    { id: 4, event: 'Fundraiser Gala', date: '2024-08-01', status: 'Cancelled' },
   ]);
 
-  // Function to remove a notification by id
-  const removeNotification = (id: any) => {
-    setNotifications(notifications.filter(notification => notification.id !== id));
-  };
-
   return (
-    <div className="p-4 max-w-lg mx-auto bg-white shadow-md rounded-lg">
-      <h1 className="text-xl font-bold mb-4">Notifications</h1>
-      <ul className="space-y-2">
-        {notifications.length === 0 ? (
-          <li className="text-gray-500">No notifications</li>
-        ) : (
-          notifications.map(notification => (
-            <li key={notification.id} className="flex justify-between items-center p-2 border-b border-gray-200">
-              <span>{notification.message}</span>
-              <button 
-                className="text-red-500 hover:text-red-700" 
-                onClick={() => removeNotification(notification.id)}
-              >
-                Remove
-              </button>
-            </li>
-          ))
-        )}
-      </ul>
+    <div className="p-4 max-w-4xl mx-auto bg-white shadow-md rounded-lg">
+      <Header />
+      <h1 className="text-xl font-bold mb-4">Volunteer History</h1>
+      <table className="w-full border-collapse border border-gray-200">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border border-gray-300 px-4 py-2 text-left">Event</th>
+            <th className="border border-gray-300 px-4 py-2 text-left">Date</th>
+            <th className="border border-gray-300 px-4 py-2 text-left">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {volunteerHistory.length === 0 ? (
+            <tr>
+              <td colSpan={3} className="border border-gray-300 px-4 py-2 text-center text-gray-500">
+                No history available
+              </td>
+            </tr>
+          ) : (
+            volunteerHistory.map((entry) => (
+              <tr key={entry.id}>
+                <td className="border border-gray-300 px-4 py-2">{entry.event}</td>
+                <td className="border border-gray-300 px-4 py-2">{entry.date}</td>
+                <td className="border border-gray-300 px-4 py-2">{entry.status}</td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+      <Footer />
     </div>
   );
 };
 
-export default Notify;
+export default History;

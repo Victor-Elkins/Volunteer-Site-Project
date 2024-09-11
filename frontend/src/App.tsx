@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import Home from './Home/Home'
 import Notify from './Notify/Notify'
 import History from './History/History'
+
 import './App.css'
 
 const App: React.FC = () => {
