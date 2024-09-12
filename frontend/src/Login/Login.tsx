@@ -25,6 +25,7 @@ const Login = () => {
             type="text"
             className="w-full px-3 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Enter your username"
+            required
           />
           <div className="flex justify-end pt-1">
             <a href="#" className="text-sm hover:underline">Forgot Username?</a>
@@ -41,6 +42,7 @@ const Login = () => {
             type={showPassword ? 'text' : 'password'}  // Dynamically change input type
             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Enter your password"
+            required
           />
           <div 
             className="absolute inset-y-0 right-0 pr-3 pt-2 flex items-center cursor-pointer"
