@@ -1,33 +1,15 @@
 /*
-  This example requires some changes to your config:
-  
-  ```
-  // tailwind.config.js
-  module.exports = {
-    // ...
-    plugins: [
-      // ...
-      require('@tailwindcss/forms'),
-    ],
-  }
-  ```
-*/
-
-/*
 TODO:
-  - Make the state dropdown required
-  - Make the skills dropdown required
-  - Add availability section (date picker)
-  - Add route back to home page
-  - Add red star to required fields
+  - Make the state dropdown required and send input to backend
+  - Make the skills dropdown required and send input to backend
+  - Make date picker required and send input to backend
   - Preferrably implement dropdowns into this file instead of seperate files? (StateDropdown.tsx, Dropdown.tsx)
-  - Add placeholders or helper text to inputs
-  - Clean up
 */
 
 import Header from "../Components/Header";
 import Dropdown from "./Dropdown";
 import { StateDropdown } from "./StateDropdown";
+import MultipleDatePicker from "../Components/DatePicker";
 
 export default function ProfileEdit() {
   return (
@@ -36,13 +18,13 @@ export default function ProfileEdit() {
         <Header />
         <div className="border-b border-gray-900/10 pb-12">
           <h2 className="text-base font-semibold leading-7 text-gray-900">Personal Information</h2>
-            <p className="mt-1 text-sm leading-6 text-gray-600">
-              Fill in your personal information so we can find events near you.
-            </p>
+          <p className="mt-1 text-sm leading-6 text-gray-600">
+            Fill in your personal information so we can find events near you.
+          </p>
           <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-          <div className="col-span-full">
+            <div className="col-span-full">
               <label htmlFor="full-name" className="block text-sm font-medium leading-6 text-gray-900">
-                Full name
+                Full name <span className="text-red-500">*</span>
               </label>
               <div className="mt-2 flex justify-center">
                 <input
@@ -59,7 +41,7 @@ export default function ProfileEdit() {
 
             <div className="col-span-full">
               <label htmlFor="street-address" className="block text-sm font-medium leading-6 text-gray-900">
-                Street address
+                Street address <span className="text-red-500">*</span>
               </label>
               <div className="mt-2">
                 <input
@@ -73,26 +55,10 @@ export default function ProfileEdit() {
                 />
               </div>
             </div>
-            
-            <div className="col-span-full">
-              <label htmlFor="street-address-2" className="block text-sm font-medium leading-6 text-gray-900">
-                Street address 2
-              </label>
-              <div className="mt-2">
-                <input
-                  id="street-address-2"
-                  name="street-address-2"
-                  type="text"
-                  autoComplete="street-address-2"
-                  maxLength={100}
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                />
-              </div>
-            </div>
 
             <div className="sm:col-span-2 sm:col-start-1">
               <label htmlFor="city" className="block text-sm font-medium leading-6 text-gray-900">
-                City
+                City <span className="text-red-500">*</span>
               </label>
               <div className="mt-2">
                 <input
@@ -109,7 +75,7 @@ export default function ProfileEdit() {
 
             <div className="sm:col-span-2">
               <label htmlFor="state" className="block text-sm font-medium leading-6 text-gray-900">
-                State / Province
+                State / Province <span className="text-red-500">*</span>
               </label>
               <div className="mt-2">
                 <StateDropdown />
@@ -118,7 +84,7 @@ export default function ProfileEdit() {
 
             <div className="sm:col-span-2">
               <label htmlFor="postal-code" className="block text-sm font-medium leading-6 text-gray-900">
-                ZIP / Postal code
+                ZIP / Postal code <span className="text-red-500">*</span>
               </label>
               <div className="mt-2">
                 <input
@@ -160,6 +126,7 @@ export default function ProfileEdit() {
               </div>
             </div>
           </div>
+        <MultipleDatePicker />
         </div>
       </div>
 
