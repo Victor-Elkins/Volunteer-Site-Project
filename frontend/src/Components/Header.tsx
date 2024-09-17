@@ -18,6 +18,10 @@ const Header = () => {
     navigate('/home');
   };
 
+  const handleProfileClick = () => {
+    navigate('/profileedit');
+  }
+
   return (
     <nav className="bg-gray-800 w-full fixed top-0 left-0 z-10">
       <div className="flex justify-between items-center px-4 py-2 max-w-full mx-auto">
@@ -45,7 +49,7 @@ const Header = () => {
           >
             <FaBell size={24} />
           </button>
-          <button className="text-white hover:text-gray-400">
+          <button className="text-white hover:text-gray-400" onClick={handleProfileClick}>
             <FaUserCircle size={24} />
           </button>
         </div>
