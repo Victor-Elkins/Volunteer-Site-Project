@@ -3,14 +3,15 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css'; // Import the DatePicker CSS
 import Header from '../Components/Header';
 import Footer from '../Components/Footer';
+import Dropbox from '../Event Managing Form/SkillsDropBox'
 
 const EventForm = () => {
     // Sample events
     const [events, setEvents] = useState([
-        { id: 1, name: 'Event1: Pick Up Trash', Date: '9/12/2028', location: 'a street', description: 'Clean the park area.', urgency: 'Medium',  skills: ['Physically Fit']},
-        { id: 2, name: 'Event2: Help at local school', Date: '11/15/2077', location: 'b street', description: 'Assist with after-school programs.', urgency: 'High',  
-            skills: ['Good with Childern', 'Organizational skills', 'Problem-Solving']},
-        { id: 3, name: 'Event3: idk', Date: '2/1/2025', location: 'c street', description: 'To be decided.', urgency: 'Low', skills: ['Health Skills']},
+        { id: 1, name: 'Example Event 1: Pick Up Trash', Date: '9/12/2028', location: 'a street', description: 'Clean the park area.', urgency: 'Medium',  skills: ['Project Management']},
+        { id: 2, name: 'Example Event 2: Help at local school', Date: '11/15/2077', location: 'b street', description: 'Assist with after-school programs.', urgency: 'High',  
+            skills: ['Public Speaking', 'Fundraising', 'Marketing']},
+        { id: 3, name: 'Example Event 3: idk!!', Date: '2/1/2025', location: 'c street', description: 'To be decided.', urgency: 'Low', skills: ['Data Analysis']},
     ]);
 
     // State for managing the current event being edited and form data
@@ -92,14 +93,10 @@ const EventForm = () => {
         }));
     };
 
-    const handleSkillChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const options = e.target.options;
-        const selectedSkills = Array.from(options)
-            .filter(option => option.selected)
-            .map(option => option.value);
+    const handleSkillChange = (skills: string[]) => {
         setFormData(prevData => ({
             ...prevData,
-            skills: selectedSkills
+            skills
         }));
     };
 
@@ -111,9 +108,9 @@ const EventForm = () => {
             alert('All fields are required and at least one skill must be selected.');
             return;
         }
-
+    
         const dateStr = Date.toLocaleDateString();
-
+    
         if (editingEvent !== null) {
             const updatedEvent = {
                 id: editingEvent,
@@ -139,18 +136,9 @@ const EventForm = () => {
             };
             setEvents([...events, newEvent]);
         }
-
-        setIsModalOpen(false);
-        setEditingEvent(null);
-        setIsAdding(false);
-        setFormData({
-            name: '',
-            Date: new Date(),
-            description: '',
-            location: '',
-            urgency: 'Low',
-            skills: []
-        });
+    
+        setIsModalOpen(false); // Close modal
+        setIsAdding(false); // Reset adding state
     };
 
     // Function to close the modal
@@ -247,6 +235,12 @@ const EventForm = () => {
                                 />
                             </label>
                             <label className="block mb-2">
+                            <Dropbox
+                                selectedSkills={formData.skills.map(skill => ({ id: skill, name: skill }))}
+                                onSkillsChange={(selected) => handleSkillChange(selected.map(skill => skill.name))}
+                            />
+                            </label>
+                            <label className="block mb-2">
                                 Urgency:
                                 <select
                                     name="urgency"
@@ -257,22 +251,6 @@ const EventForm = () => {
                                     <option value="Low">Low</option>
                                     <option value="Medium">Medium</option>
                                     <option value="High">High</option>
-                                </select>
-                            </label>
-                            <label className="block mb-2">
-                                Required Skills:
-                                <select
-                                    name="skills"
-                                    multiple
-                                    value={formData.skills}
-                                    onChange={handleSkillChange}
-                                    className="border rounded p-2 w-full"
-                                >
-                                    <option value="Good with Children">Good with Childern</option>
-                                    <option value="Problem-Solving">Problem-Solving</option>
-                                    <option value="Organizational skills">Organizational skills</option>
-                                    <option value="Physically Fit">Physically Fit</option>
-                                    <option value="Health Skills">Health Skills</option>
                                 </select>
                             </label>
                             <div className="flex justify-end space-x-2 mt-4">
