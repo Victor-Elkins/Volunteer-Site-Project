@@ -5,11 +5,11 @@ import Footer from '../Components/Footer';
 const VolunteerMatching = () => {
     
     const [events, setEvents] = useState([
-        { id: 1, name: 'Event1: Pick Up Trash', Date: '9/12/2028', location: 'a street', description: 'Clean the park area.', urgency: 'Medium',  skills: ['Physically Fit'], peopleAssigned: ["Joe Ng", "Larry Bird", "MJ"]
+        { id: 1, name: 'Pick Up Trash', Date: '9/12/2028', location: 'a street', description: 'Clean the park area.', urgency: 'Medium',  skills: ['Physically Fit'], peopleAssigned: ["Joe Ng", "Larry Bird", "MJ"]
             , isExpanded: false },
-        { id: 2, name: 'Event2: Help at local school', Date: '11/15/2077', location: 'b street', description: 'Assist with after-school programs.', urgency: 'High',  
+        { id: 2, name: 'Help at local school', Date: '11/15/2077', location: 'b street', description: 'Assist with after-school programs.', urgency: 'High',  
             skills: ['Good with Childern', 'Organizational skills', 'Problem-Solving'], peopleAssigned: ["abd ddd", "asdasd asasd", "Kenn Kerr"], isExpanded: false},
-        { id: 3, name: 'Event3: idk', Date: '2/1/2025', location: 'c street', description: 'To be decided.', urgency: 'Low', skills: ['Health Skills'], peopleAssigned: ["The asdasd", "asdasd"], isExpanded: false},
+        { id: 3, name: 'Example', Date: '2/1/2025', location: 'c street', description: 'To be decided.', urgency: 'Low', skills: ['Health Skills'], peopleAssigned: ["The asdasd", "asdasd"], isExpanded: false},
     ]);
 
 
@@ -135,12 +135,13 @@ const VolunteerMatching = () => {
                     <ul className="space-y-4">
                         {person.map(p => (
                             <li key={p.id} className="border-b border-gray-200 pb-1 text-left text-sm ">
-                                <p className="text-lg pb-1"><b>Name:</b> {p.name}</p>
-                                <div className="pr-20 text-gray-500">
+                                <p className="text-lg pb-1">{p.name}</p>
+                                
+                                <div className="pr-20 text-gray-500 pl-2">
                                     <p><b>Skills:</b> {p.skills.join(', ')}</p>
                                     <p><b>Events Assigned:</b> {p.EventAssigned.join(', ')}</p>
                                 </div>
-                                <div>
+                                <div className="pl-2">
                                     <p className=" pb-2  text-sm">
                                         <button 
                                             className="text-green-500 hover:text-green-700 pr-1 text-sm" 
