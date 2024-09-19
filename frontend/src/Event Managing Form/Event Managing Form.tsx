@@ -206,7 +206,7 @@ const EventForm = () => {
                                 />
                             </label>
                             <label className="block mb-2">
-                                Date:
+                                Date:&nbsp;
                                 <DatePicker
                                     selected={formData.Date}
                                     onChange={handleDateChange}
