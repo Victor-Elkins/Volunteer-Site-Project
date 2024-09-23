@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../Components/Header';
 import Footer from '../Components/Footer';
-const Notify = () => {
-  // Sample notifications state
-  const [notifications, setNotifications] = useState([
-    { id: 1, message: 'New event assignment' },
-    { id: 2, message: 'Event has been updated' },
-    { id: 3, message: 'Reminder about event' },
-  ]);
 
-  // Function to remove a notification by id
-  const removeNotification = (id: any) => {
-    setNotifications(notifications.filter(notification => notification.id !== id));
-  };
+// Define the structure of a Notification
+interface Notification {
+  id: number;
+  message: string;
+}
 
+interface NotifyProps {
+  notifications: Notification[];
+  removeNotification: (id: number) => void;
+}
+
+const Notify: React.FC<NotifyProps> = ({ notifications, removeNotification }) => {
   return (
     <div className="p-4 max-w-lg mx-auto bg-white shadow-md rounded-lg">
       <Header />
