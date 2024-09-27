@@ -9,10 +9,12 @@ let notifications = [
   { id: 3, message: 'Reminder about event' },
 ];
 
+//TODO: This needs to get notifs from events not just default notifs
 // Get all notifications
 router.get('/', (req, res) => {
   res.json(notifications);
 });
+
 
 // Add a new notification with validation
 router.post(
