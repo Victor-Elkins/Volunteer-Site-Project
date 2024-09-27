@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import Footer from '../Components/Footer';
 
 const Login = () => {
   // State to toggle password visibility
@@ -69,10 +70,11 @@ const Login = () => {
             Don't have a Volunteer account?
           </p>
           <p className="text-blue-500 font-medium hover:underline hover:text-blue-600">
-            <a href="#">Create an account</a>
+            <a href="../Registration">Create an account</a>
           </p>
         </div>
       </form>
+      <Footer />
     </div>
   )
 }
