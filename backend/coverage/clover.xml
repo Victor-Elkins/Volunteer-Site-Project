@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1727475047005" clover="3.2.0">
-  <project timestamp="1727475047005" name="All files">
+<coverage generated="1727475214758" clover="3.2.0">
+  <project timestamp="1727475214758" name="All files">
     <metrics statements="43" coveredstatements="43" conditionals="10" coveredconditionals="10" methods="7" coveredmethods="7" elements="60" coveredelements="60" complexity="0" loc="43" ncloc="43" packages="1" files="2" classes="2"/>
     <file name="history.js" path="C:\Users\12813\Documents\Volunteer Site Project\backend\routes\history.js">
       <metrics statements="22" coveredstatements="22" conditionals="6" coveredconditionals="6" methods="3" coveredmethods="3"/>

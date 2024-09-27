@@ -44,12 +44,6 @@ const Header = () => {
             <a className="text-blue-300 hover:text-white" onClick={handleHistoryClick} href="#">History</a>
           </li>
           <li>
-            <a className="text-blue-300 hover:text-white" href="#">Events</a>
-          </li>
-          <li>
-            <a className="text-blue-300 hover:text-white" href="#">Contact</a>
-          </li>
-          <li>
             <a className="text-blue-300 hover:text-white" onClick={handleEventMangementClick} href="#">Event-Management</a>
           </li>
           <li>
