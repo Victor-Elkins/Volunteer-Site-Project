@@ -22,6 +22,14 @@ const Header = () => {
     navigate('/profileedit');
   }
 
+  const handleEventMangementClick = () => {
+    navigate('/Event-Managing-Form');
+  }
+
+  const handleVolunteerMatchingClick = () => {
+    navigate('/Volunteer-Matching-Form');
+  }
+
   return (
     <nav className="bg-gray-800 w-full fixed top-0 left-0 z-10">
       <div className="flex justify-between items-center px-4 py-2 max-w-full mx-auto">
@@ -40,6 +48,12 @@ const Header = () => {
           </li>
           <li>
             <a className="text-blue-300 hover:text-white" href="#">Contact</a>
+          </li>
+          <li>
+            <a className="text-blue-300 hover:text-white" onClick={handleEventMangementClick} href="#">Event-Management</a>
+          </li>
+          <li>
+            <a className="text-blue-300 hover:text-white" onClick={handleVolunteerMatchingClick} href="#">Volunteer-Matching</a>
           </li>
         </ul>
         <div className="flex items-center space-x-4 ml-4">
