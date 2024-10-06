@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import Footer from '../Components/Footer';
 
 const Registration = () => {
   // State to handle email and password
@@ -113,7 +114,7 @@ const Registration = () => {
 
         {/* Submit Button */}
         <div className="flex justify-between pt-2">
-          <a href="#" className="pl-2 pt-1 text-blue-500 font-medium hover:underline hover:text-blue-600">Back</a>
+          <a href="../Login" className="pl-2 pt-1 text-blue-500 font-medium hover:underline hover:text-blue-600">Back</a>
           <button
             type="submit"
             className={`w-52 ${!isPasswordValid || !isEmailValid ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'} font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
@@ -123,6 +124,7 @@ const Registration = () => {
           </button>
         </div>
       </form>
+      <Footer />
     </div>
   )
 }
