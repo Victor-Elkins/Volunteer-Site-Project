@@ -1,20 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css'; // Import the DatePicker CSS
 import Header from '../Components/Header';
 import Footer from '../Components/Footer';
-import Dropbox from '../Event Managing Form/SkillsDropBox'
+import Dropbox from '../Event Managing Form/SkillsDropBox';
 
 const EventForm = () => {
-    // Sample events
-    const [events, setEvents] = useState([
-        { id: 1, name: 'Example Event 1: Pick Up Trash', Date: '9/12/2028', location: 'a street', description: 'Clean the park area.', urgency: 'Medium',  skills: ['Project Management']},
-        { id: 2, name: 'Example Event 2: Help at local school', Date: '11/15/2077', location: 'b street', description: 'Assist with after-school programs.', urgency: 'High',  
-            skills: ['Public Speaking', 'Fundraising', 'Marketing']},
-        { id: 3, name: 'Example Event 3: idk!!', Date: '2/1/2025', location: 'c street', description: 'To be decided.', urgency: 'Low', skills: ['Data Analysis']},
-    ]);
-
-    // State for managing the current event being edited and form data
+    const [events, setEvents] = useState([]);
     const [editingEvent, setEditingEvent] = useState<number | null>(null);
     const [formData, setFormData] = useState({
         name: '',
@@ -22,16 +14,45 @@ const EventForm = () => {
         description: '',
         location: '',
         urgency: 'Low',
-        skills: [] as string[]  
+        skills: []
     });
     
-    // State for controlling modal visibility and whether it's for editing or adding
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isAdding, setIsAdding] = useState(false);
+    
+    // Fetch events from the backend when the component mounts
+    useEffect(() => {
+        const fetchEvents = async () => {
+            try {
+                const response = await fetch('http://localhost:5000/api/history');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch events');
+                }
+                const data = await response.json();
+                setEvents(data);
+            } catch (error) {
+                console.error('Error fetching events:', error);
+            }
+        };
+
+        fetchEvents();
+    }, []);
 
     // Function to remove event by id
-    const removeEvent = (id: number) => {
-        setEvents(events.filter(event => event.id !== id));
+    const removeEvent = async (id: number) => {
+        try {
+            const response = await fetch(`http://localhost:5000/api/history/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to remove event');
+            }
+
+            setEvents(events.filter(event => event.id !== id));
+        } catch (error) {
+            console.error('Error removing event:', error);
+        }
     };
 
     // Function to add an event
@@ -40,11 +61,11 @@ const EventForm = () => {
         setEditingEvent(null); // Clear editing state
         setFormData({
             name: '',
-            Date: new Date(),  // Reset Date to current date
-            description: '',    // Reset description field
+            Date: new Date(),
+            description: '',
             location: '',
             urgency: 'Low',
-            skills: [] 
+            skills: []
         });
         setIsModalOpen(true); // Open modal
     };
@@ -56,8 +77,8 @@ const EventForm = () => {
             setEditingEvent(id);
             setFormData({
                 name: eventToEdit.name,
-                Date: new Date(eventToEdit.Date),  // Convert string to Date object
-                description: eventToEdit.description, // Update description field
+                Date: new Date(eventToEdit.Date), // Convert string to Date object
+                description: eventToEdit.description,
                 location: eventToEdit.location,
                 urgency: eventToEdit.urgency,
                 skills: eventToEdit.skills
@@ -101,44 +122,68 @@ const EventForm = () => {
     };
 
     // Submit the form to either add or update the event
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const { name, Date, description, location, skills } = formData;
+
         if (!name || !Date || !description || !location || !Array.isArray(skills) || skills.length === 0) {
             alert('All fields are required and at least one skill must be selected.');
             return;
         }
-    
+
         const dateStr = Date.toLocaleDateString();
+
+        const eventPayload = {
+            name,
+            Date: dateStr,
+            description,
+            location,
+            urgency: formData.urgency,
+            skills
+        };
+
+        try {
+            if (editingEvent !== null) {
+                // Update existing event
+                const response = await fetch(`http://localhost:5000/api/history/${editingEvent}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(eventPayload),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update event');
+                }
+
+                const updatedEvent = await response.json();
+                setEvents(events.map(event =>
+                    event.id === editingEvent ? updatedEvent : event
+                ));
+            } else if (isAdding) {
+                // Add new event
+                const response = await fetch('http://localhost:5000/api/history', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(eventPayload),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to add event');
+                }
+
+                const newEvent = await response.json();
+                setEvents([...events, newEvent]);
+            }
     
-        if (editingEvent !== null) {
-            const updatedEvent = {
-                id: editingEvent,
-                name,
-                Date: dateStr,
-                description,
-                location,
-                urgency: formData.urgency,
-                skills
-            };
-            setEvents(events.map(event =>
-                event.id === editingEvent ? updatedEvent : event
-            ));
-        } else if (isAdding) {
-            const newEvent = {
-                id: events.length + 1,
-                name,
-                Date: dateStr,
-                description,
-                location,
-                urgency: formData.urgency,
-                skills
-            };
-            setEvents([...events, newEvent]);
+            setIsModalOpen(false); // Close modal
+            setIsAdding(false); // Reset adding state
+        } catch (error) {
+            console.error('Error submitting event:', error);
         }
-    
-        setIsModalOpen(false); // Close modal
-        setIsAdding(false); // Reset adding state
     };
 
     // Function to close the modal
@@ -175,7 +220,7 @@ const EventForm = () => {
                             </span>
                             <span className="flex justify-between items-center pl-4 pb-2 text-sm text-gray-500 text-left">
                                 <div className="pr-20">
-                                    <p>{event.Date},  {event.location} </p>
+                                    <p>{event.Date},  {event.location}</p>
                                     <p>{event.description}</p>
                                     <p><b>Urgency:</b> {event.urgency}</p>
                                     <p><b>Skills Required:</b> {event.skills.join(', ')}</p>
@@ -235,10 +280,10 @@ const EventForm = () => {
                                 />
                             </label>
                             <label className="block mb-2">
-                            <Dropbox
-                                selectedSkills={formData.skills.map(skill => ({ id: skill, name: skill }))}
-                                onSkillsChange={(selected) => handleSkillChange(selected.map(skill => skill.name))}
-                            />
+                                <Dropbox
+                                    selectedSkills={formData.skills.map(skill => ({ id: skill, name: skill }))}
+                                    onSkillsChange={(selected) => handleSkillChange(selected.map(skill => skill.name))}
+                                />
                             </label>
                             <label className="block mb-2">
                                 Urgency:

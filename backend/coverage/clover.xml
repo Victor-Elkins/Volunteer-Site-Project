@@ -1,8 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1727475214758" clover="3.2.0">
-  <project timestamp="1727475214758" name="All files">
-    <metrics statements="43" coveredstatements="43" conditionals="10" coveredconditionals="10" methods="7" coveredmethods="7" elements="60" coveredelements="60" complexity="0" loc="43" ncloc="43" packages="1" files="2" classes="2"/>
-    <file name="history.js" path="C:\Users\12813\Documents\Volunteer Site Project\backend\routes\history.js">
+<coverage generated="1728282513810" clover="3.2.0">
+  <project timestamp="1728282513810" name="All files">
+    <metrics statements="74" coveredstatements="73" conditionals="16" coveredconditionals="16" methods="11" coveredmethods="11" elements="101" coveredelements="100" complexity="0" loc="74" ncloc="74" packages="1" files="4" classes="4"/>
+    <file name="events.js" path="C:\Users\ngken\Volunteer-Site-Project\backend\routes\events.js">
+      <metrics statements="22" coveredstatements="22" conditionals="6" coveredconditionals="6" methods="3" coveredmethods="3"/>
+      <line num="1" count="1" type="stmt"/>
+      <line num="2" count="1" type="stmt"/>
+      <line num="3" count="1" type="stmt"/>
+      <line num="6" count="1" type="stmt"/>
+      <line num="37" count="1" type="stmt"/>
+      <line num="61" count="5" type="stmt"/>
+      <line num="62" count="5" type="cond" truecount="2" falsecount="0"/>
+      <line num="63" count="3" type="stmt"/>
+      <line num="66" count="2" type="stmt"/>
+      <line num="76" count="2" type="stmt"/>
+      <line num="77" count="2" type="stmt"/>
+      <line num="82" count="1" type="stmt"/>
+      <line num="89" count="3" type="stmt"/>
+      <line num="90" count="3" type="cond" truecount="2" falsecount="0"/>
+      <line num="91" count="1" type="stmt"/>
+      <line num="94" count="2" type="stmt"/>
+      <line num="95" count="9" type="stmt"/>
+      <line num="97" count="2" type="cond" truecount="2" falsecount="0"/>
+      <line num="98" count="1" type="stmt"/>
+      <line num="101" count="1" type="stmt"/>
+      <line num="102" count="1" type="stmt"/>
+      <line num="106" count="1" type="stmt"/>
+    </file>
+    <file name="history.js" path="C:\Users\ngken\Volunteer-Site-Project\backend\routes\history.js">
       <metrics statements="22" coveredstatements="22" conditionals="6" coveredconditionals="6" methods="3" coveredmethods="3"/>
       <line num="1" count="1" type="stmt"/>
       <line num="2" count="1" type="stmt"/>
@@ -27,7 +52,7 @@
       <line num="50" count="1" type="stmt"/>
       <line num="54" count="1" type="stmt"/>
     </file>
-    <file name="notifications.js" path="C:\Users\12813\Documents\Volunteer Site Project\backend\routes\notifications.js">
+    <file name="notifications.js" path="C:\Users\ngken\Volunteer-Site-Project\backend\routes\notifications.js">
       <metrics statements="21" coveredstatements="21" conditionals="4" coveredconditionals="4" methods="4" coveredmethods="4"/>
       <line num="1" count="1" type="stmt"/>
       <line num="2" count="1" type="stmt"/>
@@ -50,6 +75,18 @@
       <line num="57" count="7" type="stmt"/>
       <line num="58" count="2" type="stmt"/>
       <line num="62" count="1" type="stmt"/>
+    </file>
+    <file name="volunteer.js" path="C:\Users\ngken\Volunteer-Site-Project\backend\routes\volunteer.js">
+      <metrics statements="9" coveredstatements="8" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+      <line num="1" count="1" type="stmt"/>
+      <line num="2" count="1" type="stmt"/>
+      <line num="3" count="1" type="stmt"/>
+      <line num="6" count="1" type="stmt"/>
+      <line num="13" count="1" type="stmt"/>
+      <line num="14" count="1" type="stmt"/>
+      <line num="16" count="1" type="stmt"/>
+      <line num="18" count="0" type="stmt"/>
+      <line num="22" count="1" type="stmt"/>
     </file>
   </project>
 </coverage>
