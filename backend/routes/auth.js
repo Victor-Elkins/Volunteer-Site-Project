@@ -8,6 +8,14 @@ const router = express.Router();
 router.post('/register', async (req, res) => {
   const { email, password } = req.body;
 
+  // Check if the email or password is missing
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+  if (!password) {
+    return res.status(400).json({ message: 'Password is required' });
+  }
+
   // Check if the user already exists
   const userExists = users.find(user => user.email === email);
   if (userExists) {
@@ -26,6 +34,14 @@ router.post('/register', async (req, res) => {
 // Login route
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
+
+  // Check if the email or password is missing
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+  if (!password) {
+    return res.status(400).json({ message: 'Password is required' });
+  }
 
   // Find the user
   const user = users.find(user => user.email === email);
