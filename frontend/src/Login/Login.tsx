@@ -1,20 +1,72 @@
 import React, { useState } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import Footer from '../Components/Footer';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  // State to toggle password visibility
+  // State for username, password, and showPassword
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState(''); // State for error messages
+
+  // useNavigate hook for redirecting
+  const navigate = useNavigate();
 
   // Function to toggle password visibility
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent the default form submission
+
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }), // Send the credentials as JSON
+  });
+
+  // Check if the response status is not ok (e.g., 400 or 401)
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Login failed');
+  }
+
+  const data = await response.json();
+  // If login is successful, store the token (if using JWTs)
+  // localStorage.setItem('token', data.token);
+
+  // Redirect to the home page
+  navigate('/home');
+  } catch (err) {
+  // Narrow down the type of err to access properties like message
+  if (err instanceof Error) {
+    setError(err.message);
+  } else {
+    setError('An unexpected error occurred');
+  }
+  }
+};
+
   return (
     <div className="flex items-center justify-center mt-10">
-      <form className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm">
+      <form 
+        className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm"
+        onSubmit={handleSubmit}
+      >
         <h2 className="text-2xl font-bold mb-6 text-center">Welcome</h2>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 text-red-500 text-center">
+            {error}
+          </div>
+        )}
 
         {/* Username Field */}
         <div className="mb-1">
@@ -25,7 +77,9 @@ const Login = () => {
             id="username"
             type="text"
             className="w-full px-3 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Enter your username"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)} // Update username state
             required
           />
           <div className="flex justify-end pt-1">
@@ -43,6 +97,8 @@ const Login = () => {
             type={showPassword ? 'text' : 'password'}  // Dynamically change input type
             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)} // Update password state
             required
           />
           <div 

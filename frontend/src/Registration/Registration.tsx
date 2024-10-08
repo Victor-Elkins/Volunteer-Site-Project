@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import Footer from '../Components/Footer';
+import { useNavigate } from 'react-router-dom';
 
 const Registration = () => {
   // State to handle email and password
@@ -9,6 +10,11 @@ const Registration = () => {
   const [password, setPassword] = useState('');
   const [isPasswordValid, setIsPasswordValid] = useState(true);  // Track password validity
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  // useNavigate hook for redirection
+  const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
@@ -36,18 +42,70 @@ const Registration = () => {
     setIsPasswordValid(passwordRegex.test(newPassword));
   };
 
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent the default form submission
+
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
+      }
+
+      setSuccess('Registration successful! Redirecting to login...');
+      setTimeout(() => navigate('/login'), 2000); // Redirect to login after 2 seconds
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
+    }
+  };
+
   return (
     <div className="flex items-center justify-center mt-10">
-      <form className="bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
+      <form 
+        className="bg-white p-6 rounded-lg shadow-md w-full max-w-lg"
+        onSubmit={handleSubmit}
+      >
         <h2 className="text-2xl font-bold mb-6 text-center">Registration</h2>
 
+        {/* Success Message */}
+        {success && (
+          <div className="mb-4 text-green-500 text-center">
+            {success}
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 text-red-500 text-center">
+            {error}
+          </div>
+        )}
+
         {/* Name Field */}
+{/*
         <div className="mb-4">
           <div className="flex flex-col md:flex-row gap-4">
+*/}
             {/* First Name */}
+{/*
             <div className="flex-1">
               <label className="block mb-2 text-sm font-bold text-gray-700 text-left">
-                First name
+                First name 
               </label>
               <input 
                 id="first-name"
@@ -56,7 +114,9 @@ const Registration = () => {
                 required
               />
             </div>
+*/}
             {/* Last Name */}
+{/*
             <div className="flex-1">
               <label className="block mb-2 text-sm font-bold text-gray-700 text-left">
                 Last name
@@ -70,6 +130,7 @@ const Registration = () => {
             </div>
           </div>
         </div>
+*/}
 
         {/* Email Field */}
         <div className="mb-4">
