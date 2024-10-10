@@ -23,7 +23,6 @@ interface Event {
 }
 
 const VolunteerMatching = () => {
-  // State hooks
   const [events, setEvents] = useState<Event[]>([]); // Use the Event type
   const [person, setPerson] = useState<Volunteer[]>([]); // Use the Volunteer type
   const [loading, setLoading] = useState<boolean>(true); // Loading state
@@ -34,24 +33,24 @@ const VolunteerMatching = () => {
   const [matchingVolunteers, setMatchingVolunteers] = useState<Volunteer[]>([]); // Holds volunteers matching the required skills
   const [modalAction, setModalAction] = useState<'add' | 'delete' | null>(null);
 
-  // Fetch events and volunteers on mount
+  // Fetch events and volunteers 
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch events from backend
-        const eventsResponse = await fetch('/api/events'); // Adjust this to your backend route
+        const eventsResponse = await fetch('/api/events'); 
         const eventsData: Event[] = await eventsResponse.json();
         setEvents(eventsData);
 
         // Fetch volunteers from backend
-        const volunteersResponse = await fetch('/api/volunteer'); // Adjust this to your backend route
+        const volunteersResponse = await fetch('/api/volunteer'); 
         const volunteersData: Volunteer[] = await volunteersResponse.json();
         setPerson(volunteersData);
 
-        setLoading(false); // Mark loading as done
+        setLoading(false); 
       } catch (err) {
         setError('Failed to fetch data.');
-        setLoading(false); // In case of error, stop loading
+        setLoading(false); 
       }
     };
 
@@ -75,14 +74,14 @@ const VolunteerMatching = () => {
       const skillsQuery = event.skills.join(',');
       const response = await fetch(`/api/volunteer/with-skills?skills=${skillsQuery}`);
       const matchingData: Volunteer[] = await response.json();
-      setMatchingVolunteers(matchingData); // Set volunteers matching the skills
+      setMatchingVolunteers(matchingData); 
     } else {
-      setMatchingVolunteers([]); // Clear matching volunteers if not adding
+      setMatchingVolunteers([]); //
     }
 
     setModalAction(action); 
     setModalOpen(true);
-};
+  };
 
   // Close modal
   const closeModal = () => {
@@ -109,11 +108,12 @@ const VolunteerMatching = () => {
                 ? { ...event, peopleAssigned: updatedPeople }
                 : event
         ));
-        updateEventPeople(currentEvent.id, updatedPeople); // Call API to sync with backend
+        updateEventPeople(currentEvent.id, updatedPeople); 
         closeModal();
     }
-};
+  };
 
+  // Handle add of selected people
   const handleAdd = () => {
     if (currentEvent) {
         const updatedPeople = [...currentEvent.peopleAssigned, ...selectedPeople];
@@ -122,31 +122,32 @@ const VolunteerMatching = () => {
                 ? { ...event, peopleAssigned: updatedPeople }
                 : event
         ));
-        updateEventPeople(currentEvent.id, updatedPeople); // Call API to sync with backend
+        updateEventPeople(currentEvent.id, updatedPeople); 
         closeModal();
     }
   };
 
-const updateEventPeople = async (eventId: number, updatedPeople: string[]) => {
-  try {
-      const response = await fetch(`/api/events/${eventId}/update-people`, {
-          method: 'PUT',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ peopleAssigned: updatedPeople }),
-      });
+  // Update the backend with the new assigned people
+  const updateEventPeople = async (eventId: number, updatedPeople: string[]) => {
+    try {
+        const response = await fetch(`/api/events/${eventId}/update-people`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ peopleAssigned: updatedPeople }),
+        });
 
-      if (!response.ok) {
-          throw new Error('Failed to update event');
-      }
+        if (!response.ok) {
+            throw new Error('Failed to update event');
+        }
 
-      const data = await response.json();
-      console.log('Event updated:', data);
-  } catch (error) {
-      console.error('Error updating event:', error);
-  }
-};
+        const data = await response.json();
+        console.log('Event updated:', data);
+    } catch (error) {
+        console.error('Error updating event:', error);
+    }
+  };
 
   // Return loading or error messages if applicable
   if (loading) {
@@ -240,6 +241,7 @@ const updateEventPeople = async (eventId: number, updatedPeople: string[]) => {
         </div>
       </div>
 
+      {/* Modal the opens depending on adding or removing people from events */}
       {modalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
@@ -248,6 +250,7 @@ const updateEventPeople = async (eventId: number, updatedPeople: string[]) => {
             </h2>
             <div>
               <p><b>Event:</b> {currentEvent?.name}</p>
+              {/* Modal for deleting people*/}
               {modalAction === 'delete' ? (
                 <>
                   <p><b>Current People Assigned:</b></p>
@@ -275,6 +278,7 @@ const updateEventPeople = async (eventId: number, updatedPeople: string[]) => {
                 </>
               ) : (
                 <>
+                {/* Modal for adding people */}
                   {matchingVolunteers.length > 0 ? (
                     <>
                       <p><b>Matching Volunteers:</b></p>

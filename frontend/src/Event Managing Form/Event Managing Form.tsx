@@ -1,12 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css'; // Import the DatePicker CSS
+import 'react-datepicker/dist/react-datepicker.css'; 
 import Header from '../Components/Header';
 import Footer from '../Components/Footer';
 import Dropbox from '../Event Managing Form/SkillsDropBox';
 
+// Define the structure of an Event
+interface Event {
+    id: number;
+    name: string;
+    Date: string; 
+    description: string;
+    location: string;
+    urgency: 'Low' | 'Medium' | 'High'; 
+    skills: string[];
+}
+
+// Define the structure of the form data
+interface formData {
+    name: string;
+    Date: Date;
+    description: string;
+    location: string;
+    urgency: 'Low' | 'Medium' | 'High'; 
+    skills: string[];
+}
+
+
 const EventForm = () => {
-    const [events, setEvents] = useState([]);
+    const [events, setEvents] = useState<Event[]>([]); 
     const [editingEvent, setEditingEvent] = useState<number | null>(null);
     const [formData, setFormData] = useState({
         name: '',
@@ -28,7 +50,7 @@ const EventForm = () => {
                 if (!response.ok) {
                     throw new Error('Failed to fetch events');
                 }
-                const data = await response.json();
+                const data: Event[] = await response.json();
                 setEvents(data);
             } catch (error) {
                 console.error('Error fetching events:', error);
@@ -106,6 +128,7 @@ const EventForm = () => {
         }
     };
 
+    // Handle date change for Text Area
     const handleTextAreaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prevData => ({
@@ -114,10 +137,11 @@ const EventForm = () => {
         }));
     };
 
-    const handleSkillChange = (skills: string[]) => {
+    // Handle date change for Skill Change
+    const handleSkillChange = (skills: { id: string; name: string }[]) => {
         setFormData(prevData => ({
             ...prevData,
-            skills
+            skills: skills.map(skill => skill.name)
         }));
     };
 

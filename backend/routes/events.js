@@ -2,7 +2,7 @@ const express = require('express');
 const { body, param, validationResult } = require('express-validator');
 const router = express.Router();
 
-// Hardcoded events array
+// Hardcoded events array (Should be replaced with database)
 let events = [
     {
         id: 1,
@@ -11,7 +11,7 @@ let events = [
         description: 'This is the first event.',
         location: 'New York',
         urgency: 'High',
-        skills: ['JavaScript', 'React'],
+        skills: ['Physically Fit', 'Good with Childern'],
         peopleAssigned: ['John Doe', 'Jane Smith']
     },
     {
@@ -21,7 +21,7 @@ let events = [
         description: 'This is the second event.',
         location: 'Los Angeles',
         urgency: 'Medium',
-        skills: ['Node.js', 'Express'],
+        skills: ['Problem-Solving', 'Health Skills'],
         peopleAssigned: []
     },
     {
@@ -31,7 +31,7 @@ let events = [
         description: 'This is the third event.',
         location: 'Chicago',
         urgency: 'Low',
-        skills: ['HTML', 'CSS'],
+        skills: ['Physically Fit', 'Organizational skills'],
         peopleAssigned: []
     }
 ];
@@ -67,7 +67,7 @@ router.post(
     }
 
     const newEvent = {
-      id: events.length + 1, // Auto-increment ID
+      id: events.length + 1, 
       name: req.body.name,
       description: req.body.description,
       location: req.body.location,
@@ -122,13 +122,10 @@ router.put(
     const eventId = parseInt(req.params.id);
     const { peopleAssigned } = req.body;
 
-    // Find the event by ID
     const event = events.find(event => event.id === eventId);
     if (!event) {
       return res.status(404).json({ message: 'Event not found.' });
     }
-
-    // Update the people assigned to the event
     event.peopleAssigned = peopleAssigned;
 
     res.status(200).json({ message: 'People assigned updated successfully', event });

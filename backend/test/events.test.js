@@ -1,12 +1,13 @@
 const request = require('supertest');
 const express = require('express');
-const eventsRoutes = require('../routes/events'); // Adjust the path to your events router file
+const eventsRoutes = require('../routes/events'); 
 
 const app = express();
 app.use(express.json());
-app.use('/api/events', eventsRoutes); // Adjust the path to your events router
+app.use('/api/events', eventsRoutes); 
 
 describe('Events Routes', () => {
+    // Test for missing Input Validation (event name)
     it('should return 400 for missing event name', async () => {
       const res = await request(app).post('/api/events').send({ 
         date: '2024-10-25', 
@@ -20,7 +21,8 @@ describe('Events Routes', () => {
         expect.objectContaining({ msg: 'Event name is required' }),
       ]));
     });
-  
+    
+    // Test for missing Input Validation (date)
     it('should return 400 for missing date', async () => {
       const res = await request(app).post('/api/events').send({ 
         name: 'Sample Event', 
@@ -36,6 +38,7 @@ describe('Events Routes', () => {
       ]));
     });
   
+    // Test for missing Input Validation (skills)
     it('should return 400 for missing skills', async () => {
       const res = await request(app).post('/api/events').send({ 
         name: 'Sample Event', 
@@ -50,6 +53,7 @@ describe('Events Routes', () => {
       ]));
     });
   
+    // Test for creating a new event
     it('should create a new event', async () => {
       const eventData = {
         name: 'New Event',
@@ -66,6 +70,7 @@ describe('Events Routes', () => {
       expect(res.body.name).toEqual(eventData.name);
     });
   
+    // Test for deleting events
     it('should delete an event by ID', async () => {
       // First, create an event to delete
       const createRes = await request(app).post('/api/events').send({ 
@@ -77,19 +82,21 @@ describe('Events Routes', () => {
         skills: ['Skill 1'],
       });
   
-      const eventId = createRes.body.id; // Get the ID of the newly created event
+      const eventId = createRes.body.id; 
   
       const res = await request(app).delete(`/api/events/${eventId}`);
       expect(res.statusCode).toEqual(200);
       expect(res.body).toHaveProperty('message', 'Event removed');
     });
   
+    // Test for deleting a non-existent event
     it('should return 404 for deleting a non-existent event', async () => {
       const res = await request(app).delete('/api/events/999');
       expect(res.statusCode).toEqual(404);
       expect(res.body).toHaveProperty('message', 'Event not found');
     });
-  
+
+    // Test for deleting without valid ID
     it('should return 400 for deleting with an invalid ID', async () => {
       const res = await request(app).delete('/api/events/invalidId');
       expect(res.statusCode).toBe(400);
@@ -98,9 +105,8 @@ describe('Events Routes', () => {
       ]));
     });
     
-    // New Test for updating peopleAssigned
+    // Test for updating events (updating people assignmed)
     it('should update people assigned to an event', async () => {
-      // First, create an event
       const createRes = await request(app).post('/api/events').send({
         name: 'Event with People',
         date: '2024-10-25',
@@ -110,9 +116,8 @@ describe('Events Routes', () => {
         skills: ['Skill 1'],
       });
 
-      const eventId = createRes.body.id; // Get the ID of the newly created event
+      const eventId = createRes.body.id; 
 
-      // Update the peopleAssigned for the created event
       const updateRes = await request(app).put(`/api/events/${eventId}/update-people`).send({
         peopleAssigned: ['John Doe', 'Jane Smith'],
       });
@@ -122,6 +127,7 @@ describe('Events Routes', () => {
       expect(updateRes.body).toHaveProperty('message', 'People assigned updated successfully');
     });
 
+    // Test for updating an invalid ID
     it('should return 400 for invalid event ID while updating people assigned', async () => {
       const res = await request(app).put('/api/events/invalidId/update-people').send({
         peopleAssigned: ['John Doe'],
@@ -133,6 +139,7 @@ describe('Events Routes', () => {
       ]));
     });
 
+    // Test for updating an non-existent event
     it('should return 404 for updating people assigned to a non-existent event', async () => {
       const res = await request(app).put('/api/events/999/update-people').send({
         peopleAssigned: ['John Doe'],
