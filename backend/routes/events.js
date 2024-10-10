@@ -11,7 +11,8 @@ let events = [
         description: 'This is the first event.',
         location: 'New York',
         urgency: 'High',
-        skills: ['JavaScript', 'React']
+        skills: ['JavaScript', 'React'],
+        peopleAssigned: ['John Doe', 'Jane Smith']
     },
     {
         id: 2,
@@ -20,7 +21,8 @@ let events = [
         description: 'This is the second event.',
         location: 'Los Angeles',
         urgency: 'Medium',
-        skills: ['Node.js', 'Express']
+        skills: ['Node.js', 'Express'],
+        peopleAssigned: []
     },
     {
         id: 3,
@@ -29,7 +31,8 @@ let events = [
         description: 'This is the third event.',
         location: 'Chicago',
         urgency: 'Low',
-        skills: ['HTML', 'CSS']
+        skills: ['HTML', 'CSS'],
+        peopleAssigned: []
     }
 ];
 
@@ -100,6 +103,35 @@ router.delete(
 
     events.splice(eventIndex, 1); 
     res.json({ message: 'Event removed' }); 
+  }
+);
+
+// PUT route to update people assigned to an event
+router.put(
+  '/:id/update-people',
+  [
+    param('id').isInt({ gt: 0 }).withMessage('ID must be a positive integer'),
+    body('peopleAssigned').isArray().withMessage('peopleAssigned must be an array')
+  ],
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const eventId = parseInt(req.params.id);
+    const { peopleAssigned } = req.body;
+
+    // Find the event by ID
+    const event = events.find(event => event.id === eventId);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found.' });
+    }
+
+    // Update the people assigned to the event
+    event.peopleAssigned = peopleAssigned;
+
+    res.status(200).json({ message: 'People assigned updated successfully', event });
   }
 );
 

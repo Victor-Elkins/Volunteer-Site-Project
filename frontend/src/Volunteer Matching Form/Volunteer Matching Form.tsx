@@ -31,6 +31,8 @@ const VolunteerMatching = () => {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
   const [selectedPeople, setSelectedPeople] = useState<string[]>([]);
+  const [matchingVolunteers, setMatchingVolunteers] = useState<Volunteer[]>([]); // Holds volunteers matching the required skills
+  const [modalAction, setModalAction] = useState<'add' | 'delete' | null>(null);
 
   // Fetch events and volunteers on mount
   useEffect(() => {
@@ -64,11 +66,23 @@ const VolunteerMatching = () => {
   };
 
   // Open modal and set current event
-  const openModal = (event: Event) => {
+  const openModal = async (event: Event, action: 'add' | 'delete') => {
     setCurrentEvent(event);
     setSelectedPeople([]);
+    
+    if (action === 'add') {
+      // Fetch volunteers that match the required skills for this event
+      const skillsQuery = event.skills.join(',');
+      const response = await fetch(`/api/volunteer/with-skills?skills=${skillsQuery}`);
+      const matchingData: Volunteer[] = await response.json();
+      setMatchingVolunteers(matchingData); // Set volunteers matching the skills
+    } else {
+      setMatchingVolunteers([]); // Clear matching volunteers if not adding
+    }
+
+    setModalAction(action); 
     setModalOpen(true);
-  };
+};
 
   // Close modal
   const closeModal = () => {
@@ -89,14 +103,50 @@ const VolunteerMatching = () => {
   // Handle delete of selected people
   const handleDelete = () => {
     if (currentEvent) {
-      setEvents(events.map(event =>
-        event.id === currentEvent.id
-          ? { ...event, peopleAssigned: event.peopleAssigned.filter(person => !selectedPeople.includes(person)) }
-          : event
-      ));
-      closeModal();
+        const updatedPeople = currentEvent.peopleAssigned.filter(person => !selectedPeople.includes(person));
+        setEvents(events.map(event =>
+            event.id === currentEvent.id
+                ? { ...event, peopleAssigned: updatedPeople }
+                : event
+        ));
+        updateEventPeople(currentEvent.id, updatedPeople); // Call API to sync with backend
+        closeModal();
+    }
+};
+
+  const handleAdd = () => {
+    if (currentEvent) {
+        const updatedPeople = [...currentEvent.peopleAssigned, ...selectedPeople];
+        setEvents(events.map(event =>
+            event.id === currentEvent.id
+                ? { ...event, peopleAssigned: updatedPeople }
+                : event
+        ));
+        updateEventPeople(currentEvent.id, updatedPeople); // Call API to sync with backend
+        closeModal();
     }
   };
+
+const updateEventPeople = async (eventId: number, updatedPeople: string[]) => {
+  try {
+      const response = await fetch(`/api/events/${eventId}/update-people`, {
+          method: 'PUT',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ peopleAssigned: updatedPeople }),
+      });
+
+      if (!response.ok) {
+          throw new Error('Failed to update event');
+      }
+
+      const data = await response.json();
+      console.log('Event updated:', data);
+  } catch (error) {
+      console.error('Error updating event:', error);
+  }
+};
 
   // Return loading or error messages if applicable
   if (loading) {
@@ -153,14 +203,14 @@ const VolunteerMatching = () => {
                     <p className="pb-2 pl-4 text-sm">
                       <button
                         className="text-green-500 hover:text-green-700 pr-1 text-sm"
-                        onClick={() => openModal(event)}
+                        onClick={() => openModal(event, 'add')}
                       >
                         Add
                       </button>
                       or
                       <button
                         className="text-red-500 hover:text-red-700 pl-1 pr-1 text-sm"
-                        onClick={() => openModal(event)}
+                        onClick={() => openModal(event, 'delete')}
                       >
                         Delete
                       </button>
@@ -193,32 +243,68 @@ const VolunteerMatching = () => {
       {modalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
-            <h2 className="text-lg font-semibold mb-4">Manage People Assigned</h2>
+            <h2 className="text-lg font-semibold mb-4">
+              {modalAction === 'add' ? 'Add People to Event' : 'Delete People from Event'}
+            </h2>
             <div>
               <p><b>Event:</b> {currentEvent?.name}</p>
-              <p><b>Current People Assigned:</b></p>
-              <ul>
-                {currentEvent?.peopleAssigned?.map((person, index) => (
-                  <div key={index} className="flex">
-                    <span className="w-1/3"></span>
-                    <li className="flex items-start">
-                      <input
-                        type="checkbox"
-                        checked={selectedPeople.includes(person)}
-                        onChange={() => handleCheckboxChange(person)}
-                        className="mr-2 mt-2"
-                      />
-                      <span className="text-left">{person}</span>
-                    </li>
-                  </div>
-                ))}
-              </ul>
-              <button
-                className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
-                onClick={handleDelete}
-              >
-                Delete Selected People
-              </button>
+              {modalAction === 'delete' ? (
+                <>
+                  <p><b>Current People Assigned:</b></p>
+                  <ul>
+                    {currentEvent?.peopleAssigned?.map((person, index) => (
+                      <div key={index} className="flex">
+                        <li className="flex items-start">
+                          <input
+                            type="checkbox"
+                            checked={selectedPeople.includes(person)}
+                            onChange={() => handleCheckboxChange(person)}
+                            className="mr-2 mt-2"
+                          />
+                          <span>{person}</span>
+                        </li>
+                      </div>
+                    ))}
+                  </ul>
+                  <button
+                    className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
+                    onClick={handleDelete}
+                  >
+                    Delete Selected People
+                  </button>
+                </>
+              ) : (
+                <>
+                  {matchingVolunteers.length > 0 ? (
+                    <>
+                      <p><b>Matching Volunteers:</b></p>
+                      <ul>
+                        {matchingVolunteers.map((volunteer) => (
+                          <div key={volunteer.id} className="flex">
+                            <li className="flex items-start">
+                              <input
+                                type="checkbox"
+                                checked={selectedPeople.includes(volunteer.name)}
+                                onChange={() => handleCheckboxChange(volunteer.name)}
+                                className="mr-2 mt-2"
+                              />
+                              <span>{volunteer.name}</span>
+                            </li>
+                          </div>
+                        ))}
+                      </ul>
+                    </>
+                  ) : (
+                    <p>No volunteers match the required skills.</p>
+                  )}
+                  <button
+                    className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700"
+                    onClick={handleAdd}
+                  >
+                    Add Selected People
+                  </button>
+                </>
+              )}
             </div>
             <button
               className="mt-4 text-gray-500 hover:text-gray-700"
@@ -229,6 +315,8 @@ const VolunteerMatching = () => {
           </div>
         </div>
       )}
+
+
       <Footer />
     </div>
   );

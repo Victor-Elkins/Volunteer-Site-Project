@@ -97,4 +97,48 @@ describe('Events Routes', () => {
         expect.objectContaining({ msg: 'ID must be a positive integer' }),
       ]));
     });
-  });
+    
+    // New Test for updating peopleAssigned
+    it('should update people assigned to an event', async () => {
+      // First, create an event
+      const createRes = await request(app).post('/api/events').send({
+        name: 'Event with People',
+        date: '2024-10-25',
+        description: 'This event will have people assigned.',
+        location: 'Sample Location',
+        urgency: 'Medium',
+        skills: ['Skill 1'],
+      });
+
+      const eventId = createRes.body.id; // Get the ID of the newly created event
+
+      // Update the peopleAssigned for the created event
+      const updateRes = await request(app).put(`/api/events/${eventId}/update-people`).send({
+        peopleAssigned: ['John Doe', 'Jane Smith'],
+      });
+
+      expect(updateRes.statusCode).toEqual(200);
+      expect(updateRes.body.event.peopleAssigned).toEqual(['John Doe', 'Jane Smith']);
+      expect(updateRes.body).toHaveProperty('message', 'People assigned updated successfully');
+    });
+
+    it('should return 400 for invalid event ID while updating people assigned', async () => {
+      const res = await request(app).put('/api/events/invalidId/update-people').send({
+        peopleAssigned: ['John Doe'],
+      });
+
+      expect(res.statusCode).toEqual(400);
+      expect(res.body.errors).toEqual(expect.arrayContaining([
+        expect.objectContaining({ msg: 'ID must be a positive integer' }),
+      ]));
+    });
+
+    it('should return 404 for updating people assigned to a non-existent event', async () => {
+      const res = await request(app).put('/api/events/999/update-people').send({
+        peopleAssigned: ['John Doe'],
+      });
+
+      expect(res.statusCode).toEqual(404);
+      expect(res.body).toHaveProperty('message', 'Event not found.');
+    });
+});

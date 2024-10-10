@@ -16,4 +16,28 @@ describe('Volunteer Matching API', () => {
       expect.objectContaining({ id: 3, name: 'Kenn Kerr' }),
     ]));
   });
+
+  it('should return volunteers with matching skills', async () => {
+    const res = await request(app)
+      .get('/api/volunteer/with-skills')
+      .query({ skills: 'Physically Fit, Good with Childern' }); // Example query
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 1, name: 'Joe Ng' }), // Joe has 'Physically Fit' and 'Good with Childern'
+    ]));
+    expect(res.body).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 2, name: 'Larry Bird' }),
+      expect.objectContaining({ id: 3, name: 'Kenn Kerr' }),
+    ]));
+  });
+
+  it('should return an empty array when no volunteers match the required skills', async () => {
+    const res = await request(app)
+      .get('/api/volunteer/with-skills')
+      .query({ skills: 'Nonexistent Skill' }); // A skill that no volunteers have
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toEqual([]);
+  });
 });
