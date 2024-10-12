@@ -37,6 +37,20 @@ describe('Events Routes', () => {
         expect.objectContaining({ msg: 'Event date must be a string' }),
       ]));
     });
+
+    // Test for past date validation
+    it('should return 400 for past event date', async () => {
+      const res = await request(app).post('/api/events').send({ 
+        name: 'Past Event', 
+        date: '2020-01-01', // A date in the past
+        description: 'This is a past event.',
+        location: 'Past Location',
+        urgency: 'Low',
+        skills: ['Skill 1']
+      });
+      expect(res.statusCode).toEqual(400);
+      expect(res.body).toHaveProperty('message', 'The event date cannot be in the past.');
+    });
   
     // Test for missing Input Validation (skills)
     it('should return 400 for missing skills', async () => {
@@ -68,6 +82,13 @@ describe('Events Routes', () => {
       expect(res.statusCode).toEqual(201);
       expect(res.body).toHaveProperty('id');
       expect(res.body.name).toEqual(eventData.name);
+    });
+  
+    // Test for retrieving all events
+    it('should retrieve all events', async () => {
+      const res = await request(app).get('/api/events');
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBeTruthy(); // Check if the response is an array
     });
   
     // Test for deleting events
@@ -105,7 +126,7 @@ describe('Events Routes', () => {
       ]));
     });
     
-    // Test for updating events (updating people assignmed)
+    // Test for updating events (updating people assigned)
     it('should update people assigned to an event', async () => {
       const createRes = await request(app).post('/api/events').send({
         name: 'Event with People',
@@ -139,7 +160,7 @@ describe('Events Routes', () => {
       ]));
     });
 
-    // Test for updating an non-existent event
+    // Test for updating a non-existent event
     it('should return 404 for updating people assigned to a non-existent event', async () => {
       const res = await request(app).put('/api/events/999/update-people').send({
         peopleAssigned: ['John Doe'],

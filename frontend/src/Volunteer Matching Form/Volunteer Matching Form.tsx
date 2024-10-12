@@ -38,12 +38,12 @@ const VolunteerMatching = () => {
     const fetchData = async () => {
       try {
         // Fetch events from backend
-        const eventsResponse = await fetch('/api/events'); 
+        const eventsResponse =  await fetch('http://localhost:5000/api/events');
         const eventsData: Event[] = await eventsResponse.json();
         setEvents(eventsData);
 
         // Fetch volunteers from backend
-        const volunteersResponse = await fetch('/api/volunteer'); 
+        const volunteersResponse = await fetch('http://localhost:5000/api/volunteer')
         const volunteersData: Volunteer[] = await volunteersResponse.json();
         setPerson(volunteersData);
 
@@ -66,21 +66,32 @@ const VolunteerMatching = () => {
 
   // Open modal and set current event
   const openModal = async (event: Event, action: 'add' | 'delete') => {
-    setCurrentEvent(event);
-    setSelectedPeople([]);
-    
-    if (action === 'add') {
-      // Fetch volunteers that match the required skills for this event
-      const skillsQuery = event.skills.join(',');
-      const response = await fetch(`/api/volunteer/with-skills?skills=${skillsQuery}`);
-      const matchingData: Volunteer[] = await response.json();
-      setMatchingVolunteers(matchingData); 
-    } else {
-      setMatchingVolunteers([]); //
+    try {
+      setCurrentEvent(event);
+      setSelectedPeople([]);
+  
+      if (action === 'add') {
+        // Fetch volunteers that match the required skills for this event
+        const skillsQuery = event.skills.join(',');
+        const eventName = encodeURIComponent(event.name); // Ensure event name is URL-safe
+  
+        const response = await fetch(`http://localhost:5000/api/volunteer/with-skills?skills=${skillsQuery}&eventName=${eventName}`);
+        const matchingData: Volunteer[] = await response.json();
+  
+        // Filter out volunteers who are already assigned to this event
+        const filteredVolunteers = matchingData.filter(volunteer => !event.peopleAssigned.includes(volunteer.name));
+  
+        setMatchingVolunteers(filteredVolunteers);
+      } else {
+        setMatchingVolunteers([]);
+      }
+  
+      setModalAction(action); 
+      setModalOpen(true);
+    } catch (error) {
+      setError('Failed to fetch matching volunteers.');
+      console.log("Error:", error);
     }
-
-    setModalAction(action); 
-    setModalOpen(true);
   };
 
   // Close modal
@@ -100,42 +111,53 @@ const VolunteerMatching = () => {
   };
 
   // Handle delete of selected people
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (currentEvent) {
-        const updatedPeople = currentEvent.peopleAssigned.filter(person => !selectedPeople.includes(person));
+        // Get the names of the selected people to delete
+        const peopleToDelete = selectedPeople; 
+        const updatedPeople = currentEvent.peopleAssigned.filter(person => !peopleToDelete.includes(person));
+        
+        // Update events in the frontend state
         setEvents(events.map(event =>
             event.id === currentEvent.id
                 ? { ...event, peopleAssigned: updatedPeople }
                 : event
         ));
-        updateEventPeople(currentEvent.id, updatedPeople); 
+
+        // Send updated people and event name to the backend
+        await updateEventPeople(currentEvent.id, updatedPeople, currentEvent.name, peopleToDelete); 
+
         closeModal();
     }
   };
 
+
   // Handle add of selected people
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (currentEvent) {
-        const updatedPeople = [...currentEvent.peopleAssigned, ...selectedPeople];
-        setEvents(events.map(event =>
-            event.id === currentEvent.id
-                ? { ...event, peopleAssigned: updatedPeople }
-                : event
-        ));
-        updateEventPeople(currentEvent.id, updatedPeople); 
-        closeModal();
+      const updatedPeople = [...new Set([...currentEvent.peopleAssigned, ...selectedPeople])]; // Ensure unique values
+  
+      setEvents(events.map(event =>
+        event.id === currentEvent.id
+          ? { ...event, peopleAssigned: updatedPeople }
+          : event
+      ));
+  
+      await updateEventPeople(currentEvent.id, updatedPeople, currentEvent.name, selectedPeople); 
+  
+      closeModal();
     }
   };
 
   // Update the backend with the new assigned people
-  const updateEventPeople = async (eventId: number, updatedPeople: string[]) => {
+  const updateEventPeople = async (eventId: number, updatedPeople: string[], eventName: string, peopleToDelete: string[]) => {
     try {
-        const response = await fetch(`/api/events/${eventId}/update-people`, {
+        const response = await fetch(`http://localhost:5000/api/events/${eventId}/update-people`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ peopleAssigned: updatedPeople }),
+            body: JSON.stringify({ peopleAssigned: updatedPeople, eventName, peopleToDelete }), // Send people to delete as well
         });
 
         if (!response.ok) {
@@ -143,7 +165,7 @@ const VolunteerMatching = () => {
         }
 
         const data = await response.json();
-        console.log('Event updated:', data);
+        console.log('Event and volunteers updated:', data);
     } catch (error) {
         console.error('Error updating event:', error);
     }
@@ -159,7 +181,7 @@ const VolunteerMatching = () => {
   }
 
   return (
-    <div className="p-4 max-w-3xl mx-auto bg-white shadow-md rounded-lg">
+    <div className="p-4 max-w-4xl mx-auto bg-white shadow-md rounded-lg">
       <Header />
       <h1 className="text-xl font-bold mb-4">Volunteer Matching Form</h1>
       <div className="flex">
@@ -172,11 +194,11 @@ const VolunteerMatching = () => {
             ) : (
               events.map(event => (
                 <li key={event.id} className="border-b">
-                  <span className="flex justify-between items-center pl-2 pb-1">
+                  <span className="flex justify-between items-center pl-2 pb-1 text-lg">
                     <span>{event.name}</span>
                   </span>
                   <span className="flex justify-between items-center pl-4 text-sm text-gray-500 text-left">
-                    <div className="pr-20">
+                    <div className="pr-5">
                       <p>{event.description}</p>
                       <p><b>Urgency:</b> {event.urgency}</p>
                       <p><b>Skills Required:</b> {event.skills.join(', ')}</p>
@@ -204,7 +226,10 @@ const VolunteerMatching = () => {
                     <p className="pb-2 pl-4 text-sm">
                       <button
                         className="text-green-500 hover:text-green-700 pr-1 text-sm"
-                        onClick={() => openModal(event, 'add')}
+                        onClick={() => {
+                          console.log('Add button clicked for event:', event.name); // Debugging log
+                          openModal(event, 'add');
+                        }}
                       >
                         Add
                       </button>
@@ -233,7 +258,7 @@ const VolunteerMatching = () => {
                 <p className="text-lg pb-1">{volunteer.name}</p>
                 <div className="pr-20 text-gray-500 pl-2">
                   <p><b>Skills:</b> {volunteer.skills.join(', ')}</p>
-                  <p><b>Events Assigned:</b> {volunteer.EventAssigned.join(', ')}</p>
+                  <p><b>Event(s) Assigned:</b> {volunteer.EventAssigned.join(', ')}</p>
                 </div>
               </li>
             ))}
@@ -254,9 +279,10 @@ const VolunteerMatching = () => {
               {modalAction === 'delete' ? (
                 <>
                   <p><b>Current People Assigned:</b></p>
-                  <ul>
+                  <ul className="flex flex-col">
                     {currentEvent?.peopleAssigned?.map((person, index) => (
                       <div key={index} className="flex">
+                        <span className = "w-1/3"></span>
                         <li className="flex items-start">
                           <input
                             type="checkbox"
@@ -285,6 +311,7 @@ const VolunteerMatching = () => {
                       <ul>
                         {matchingVolunteers.map((volunteer) => (
                           <div key={volunteer.id} className="flex">
+                            <span className = "w-1/3"></span>
                             <li className="flex items-start">
                               <input
                                 type="checkbox"

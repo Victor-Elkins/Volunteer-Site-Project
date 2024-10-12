@@ -9,30 +9,30 @@ import Dropbox from '../Event Managing Form/SkillsDropBox';
 interface Event {
     id: number;
     name: string;
-    Date: string; 
+    date: string; 
     description: string;
     location: string;
     urgency: 'Low' | 'Medium' | 'High'; 
-    skills: string[];
+    skills: string[]; 
 }
 
 // Define the structure of the form data
 interface formData {
     name: string;
-    Date: Date;
+    date: Date;
     description: string;
     location: string;
     urgency: 'Low' | 'Medium' | 'High'; 
-    skills: string[];
+    skills: string[]; 
 }
 
 
 const EventForm = () => {
     const [events, setEvents] = useState<Event[]>([]); 
     const [editingEvent, setEditingEvent] = useState<number | null>(null);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<formData>({
         name: '',
-        Date: new Date(),
+        date: new Date(),
         description: '',
         location: '',
         urgency: 'Low',
@@ -46,7 +46,7 @@ const EventForm = () => {
     useEffect(() => {
         const fetchEvents = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/history');
+                const response = await fetch('http://localhost:5000/api/events');
                 if (!response.ok) {
                     throw new Error('Failed to fetch events');
                 }
@@ -63,7 +63,7 @@ const EventForm = () => {
     // Function to remove event by id
     const removeEvent = async (id: number) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/history/${id}`, {
+            const response = await fetch(`http://localhost:5000/api/events/${id}`, {
                 method: 'DELETE',
             });
 
@@ -83,7 +83,7 @@ const EventForm = () => {
         setEditingEvent(null); // Clear editing state
         setFormData({
             name: '',
-            Date: new Date(),
+            date: new Date(),
             description: '',
             location: '',
             urgency: 'Low',
@@ -99,7 +99,7 @@ const EventForm = () => {
             setEditingEvent(id);
             setFormData({
                 name: eventToEdit.name,
-                Date: new Date(eventToEdit.Date), // Convert string to Date object
+                date: new Date(eventToEdit.date), 
                 description: eventToEdit.description,
                 location: eventToEdit.location,
                 urgency: eventToEdit.urgency,
@@ -123,7 +123,7 @@ const EventForm = () => {
         if (date) {
             setFormData(prevData => ({
                 ...prevData,
-                Date: date
+                date 
             }));
         }
     };
@@ -138,28 +138,32 @@ const EventForm = () => {
     };
 
     // Handle date change for Skill Change
-    const handleSkillChange = (skills: { id: string; name: string }[]) => {
+    const handleSkillChange = (skills: string[]) => {
         setFormData(prevData => ({
             ...prevData,
-            skills: skills.map(skill => skill.name)
+            skills
         }));
     };
 
     // Submit the form to either add or update the event
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const { name, Date, description, location, skills } = formData;
-
-        if (!name || !Date || !description || !location || !Array.isArray(skills) || skills.length === 0) {
+        const { name, date, description, location, skills } = formData;
+        const today = new Date();
+        if (date < today) {
+            alert('The event date cannot be in the past.');
+            return;
+        }
+        if (!name || !date || !description || !location || !Array.isArray(skills) || skills.length === 0) {
             alert('All fields are required and at least one skill must be selected.');
             return;
         }
 
-        const dateStr = Date.toLocaleDateString();
+        const dateStr = date.toLocaleDateString();
 
         const eventPayload = {
             name,
-            Date: dateStr,
+            date: dateStr,
             description,
             location,
             urgency: formData.urgency,
@@ -169,7 +173,7 @@ const EventForm = () => {
         try {
             if (editingEvent !== null) {
                 // Update existing event
-                const response = await fetch(`http://localhost:5000/api/history/${editingEvent}`, {
+                const response = await fetch(`http://localhost:5000/api/events/${editingEvent}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -187,7 +191,7 @@ const EventForm = () => {
                 ));
             } else if (isAdding) {
                 // Add new event
-                const response = await fetch('http://localhost:5000/api/history', {
+                const response = await fetch('http://localhost:5000/api/events', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -244,7 +248,7 @@ const EventForm = () => {
                             </span>
                             <span className="flex justify-between items-center pl-4 pb-2 text-sm text-gray-500 text-left">
                                 <div className="pr-20">
-                                    <p>{event.Date},  {event.location}</p>
+                                    <p>{event.date},  {event.location}</p>
                                     <p>{event.description}</p>
                                     <p><b>Urgency:</b> {event.urgency}</p>
                                     <p><b>Skills Required:</b> {event.skills.join(', ')}</p>
@@ -277,7 +281,7 @@ const EventForm = () => {
                             <label className="block mb-2">
                                 Date:&nbsp;
                                 <DatePicker
-                                    selected={formData.Date}
+                                    selected={formData.date} 
                                     onChange={handleDateChange}
                                     dateFormat="MM/dd/yyyy"
                                     className="border rounded p-2 w-full"
@@ -305,8 +309,9 @@ const EventForm = () => {
                             </label>
                             <label className="block mb-2">
                                 <Dropbox
-                                    selectedSkills={formData.skills.map(skill => ({ id: skill, name: skill }))}
-                                    onSkillsChange={(selected) => handleSkillChange(selected.map(skill => skill.name))}
+                                    selectedSkills={formData.skills} 
+                                    onSkillsChange={(selected) => handleSkillChange(selected)} 
+
                                 />
                             </label>
                             <label className="block mb-2">
