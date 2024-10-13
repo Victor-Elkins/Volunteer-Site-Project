@@ -38,7 +38,10 @@ router.post(
     res.json(newNotification);
   }
 );
-
+router.get('/', (req, res) => {
+  const notificationCount = notifications.length;
+  res.json({ count: notificationCount, notifications: notifications });
+});
 // Remove a notification by id with validation
 router.delete(
   '/:id',

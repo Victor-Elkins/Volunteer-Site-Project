@@ -1,13 +1,32 @@
-// src/components/Header.js
-import React from 'react';
-import { FaBell, FaUserCircle } from 'react-icons/fa'; // Import React Icons
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import React, { useState, useEffect } from 'react';
+import { FaBell, FaUserCircle } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/notifications');
+        if (!response.ok) {
+          throw new Error('Failed to fetch notifications');
+        }
+        const data = await response.json();
+        setNotificationCount(data.length);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      }
+    };
+    fetchNotifications();
+  }, []);
+  
+  
+  
 
   const handleBellClick = () => {
-    navigate('/notify'); // Navigate to the Notify route
+    navigate('/notify');
   };
 
   const handleHistoryClick = () => {
@@ -22,7 +41,7 @@ const Header = () => {
     navigate('/profileedit');
   }
 
-  const handleEventMangementClick = () => {
+  const handleEventManagementClick = () => {
     navigate('/Event-Managing-Form');
   }
 
@@ -44,18 +63,23 @@ const Header = () => {
             <a className="text-blue-300 hover:text-white" onClick={handleHistoryClick} href="#">History</a>
           </li>
           <li>
-            <a className="text-blue-300 hover:text-white" onClick={handleEventMangementClick} href="#">Event-Management</a>
+            <a className="text-blue-300 hover:text-white" onClick={handleEventManagementClick} href="#">Event-Management</a>
           </li>
           <li>
             <a className="text-blue-300 hover:text-white" onClick={handleVolunteerMatchingClick} href="#">Volunteer-Matching</a>
           </li>
         </ul>
         <div className="flex items-center space-x-4 ml-4">
-          <button 
-            className="text-white hover:text-gray-400"
+          <button
+            className="text-white hover:text-gray-400 relative"
             onClick={handleBellClick}
           >
             <FaBell size={24} />
+            {notificationCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {notificationCount}
+              </span>
+            )}
           </button>
           <button className="text-white hover:text-gray-400" onClick={handleProfileClick}>
             <FaUserCircle size={24} />
