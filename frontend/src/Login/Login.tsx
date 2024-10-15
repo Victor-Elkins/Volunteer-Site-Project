@@ -29,6 +29,7 @@ const Login = () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ email, password }), // Send the credentials as JSON
+      credentials: 'include',
   });
 
   // Check if the response status is not ok (e.g., 400 or 401)
@@ -37,19 +38,13 @@ const Login = () => {
     throw new Error(errorData.message || 'Login failed');
   }
 
-  const data = await response.json();
-  // If login is successful, store the token (if using JWTs)
-  // localStorage.setItem('token', data.token);
-
-  // Redirect to the home page
   navigate('/home');
   } catch (err) {
-  // Narrow down the type of err to access properties like message
-  if (err instanceof Error) {
-    setError(err.message);
-  } else {
-    setError('An unexpected error occurred');
-  }
+    if (err instanceof Error) {
+      setError(err.message);
+    } else {
+      setError('An unexpected error occurred');
+    }
   }
 };
 
