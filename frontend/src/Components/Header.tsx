@@ -1,6 +1,6 @@
 // src/components/Header.js
 import React from 'react';
-import { FaBell, FaUserCircle } from 'react-icons/fa'; // Import React Icons
+import { FaBell, FaUserCircle, FaSignOutAlt } from 'react-icons/fa'; // Import React Icons
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const Header = () => {
@@ -28,6 +28,10 @@ const Header = () => {
 
   const handleVolunteerMatchingClick = () => {
     navigate('/Volunteer-Matching-Form');
+  }
+
+  const handleLogoutClick = () => {
+    navigate('/Login');
   }
 
   return (
@@ -59,6 +63,9 @@ const Header = () => {
           </button>
           <button className="text-white hover:text-gray-400" onClick={handleProfileClick}>
             <FaUserCircle size={24} />
+          </button>
+          <button className="text-white hover:text-gray-400" onClick={handleLogoutClick}>
+            <FaSignOutAlt size={24} />
           </button>
         </div>
       </div>
