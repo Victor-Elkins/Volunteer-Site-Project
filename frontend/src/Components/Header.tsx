@@ -30,9 +30,24 @@ const Header = () => {
     navigate('/Volunteer-Matching-Form');
   }
 
-  const handleLogoutClick = () => {
-    navigate('/Login');
-  }
+  const handleLogoutClick = async () => {
+    try {
+      // Send a request to the backend to log out the user
+      const response = await fetch('http://localhost:5000/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include', // Include the session cookie with the request
+      });
+
+      if (response.ok) {
+        // Navigate back to the login page after successful logout
+        navigate('/Login');
+      } else {
+        console.error('Logout failed');
+      }
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
 
   return (
     <nav className="bg-gray-800 w-full fixed top-0 left-0 z-10">
