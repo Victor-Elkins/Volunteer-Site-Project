@@ -7,7 +7,10 @@ const historyRoutes = require('./routes/history');
 const authRoutes = require('./routes/auth');
 
 // Enable CORS for all routes
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // Frontend url
+  credentials: true, // Allow cookies to be sent with requests
+}));
 app.use(express.json()); // Enable JSON parsing for request bodies
 
 // Express session middleware
