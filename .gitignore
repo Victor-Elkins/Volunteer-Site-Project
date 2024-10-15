@@ -1,3 +1,2 @@
-# Testing
-coverage/
-backend/coverage/
+backend/node_modules
+backend/coverage
