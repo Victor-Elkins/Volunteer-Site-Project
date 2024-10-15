@@ -1,5 +1,5 @@
 // src/components/Header.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaBell, FaUserCircle, FaSignOutAlt } from 'react-icons/fa'; // Import React Icons
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
