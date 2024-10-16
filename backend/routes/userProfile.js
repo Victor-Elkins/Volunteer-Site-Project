@@ -1,8 +1,8 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
+const users = require('../users');
 
 const router = express.Router();
-const profiles = []; // In-memory storage for user profiles
 
 // Create or Update User Profile
 router.post(
@@ -54,8 +54,28 @@ router.post(
             return res.status(400).json({ errors: errors.array() });
         }
 
+        const { id, fullName, streetAddress, streetAddress2, city, state, postalCode, skills, preferences, availability } = req.body;
+
+        const existingUserIndex = users.findIndex(user => user.id === parseInt(id));
+
+        if (existingUserIndex !== -1) {
+            users[existingUserIndex] = {
+                id: parseInt(id),
+                fullName,
+                streetAddress,
+                streetAddress2,
+                city,
+                state,
+                postalCode,
+                skills,
+                preferences: preferences || [],
+                availability,
+            }
+            return res.status(200).json(profiles[existingUserIndex]);
+        }
+
         const newProfile = {
-            id: profiles.length + 1,
+            id: users.length + 1,
             fullName: req.body.fullName,
             streetAddress: req.body.streetAddress,
             city: req.body.city,
@@ -73,19 +93,18 @@ router.post(
             newProfile.streetAddress2 = req.body.streetAddress2;
         }
 
-        profiles.push(newProfile);
+        users.push(newProfile);
         res.status(201).json(newProfile); // Created profile response
     }
 );
 
-// Get All Profiles
+
 router.get('/', (req, res) => {
-    res.json(profiles);
+    res.json(users);
 });
 
-// Get Single Profile by ID
 router.get('/:id', (req, res) => {
-    const profile = profiles.find(p => p.id === parseInt(req.params.id));
+    const profile = users.find(p => p.id === parseInt(req.params.id));
     if (!profile) {
         return res.status(404).json({ message: 'Profile not found' });
     }

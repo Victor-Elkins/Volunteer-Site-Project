@@ -19,6 +19,7 @@ export default function ProfileEdit() {
     const [preferences, setPreferences] = useState("");
     const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
     const [availability, setAvailability] = useState<Date[]>([]);
+    const [successMessageVisible, setSuccessMessageVisible] = useState(false);
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
@@ -79,6 +80,19 @@ export default function ProfileEdit() {
             const result = await response.json();
             console.log("Profile saved:", result);
             setErrors([]);
+            setSuccessMessageVisible(true);
+
+            setFullName("");
+            setStreetAddress("");
+            setStreetAddress2("");
+            setCity("");
+            setSelectedState(null);
+            setPostalCode("");
+            setPreferences("");
+            setSelectedSkills([]);
+            setAvailability([]);
+
+            setTimeout(() => setSuccessMessageVisible(false), 3000);
         } catch (error) {
             console.error("Error submitting form:", error);
             // @ts-expect-error: error is of unknown type, handled safely in catch block.
@@ -86,7 +100,15 @@ export default function ProfileEdit() {
         }
     };
     return (
+
         <form onSubmit={handleSubmit}>
+
+            {successMessageVisible && (
+                <div
+                    className={`fixed up-5 left-1/2 transform -translate-x-1/2 mt-4 rounded-lg bg-green-500 text-white p-4 shadow-md z-50`}>
+                    Form successfully submitted!
+                </div>
+            )}
 
             {errors.length > 0 && (
                 <div className="mt-4">
