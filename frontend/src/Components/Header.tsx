@@ -1,7 +1,7 @@
 // src/components/Header.js
-import React, { useState, useEffect } from 'react';
-import { FaBell, FaUserCircle, FaSignOutAlt } from 'react-icons/fa'; // Import React Icons
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import React, {useEffect, useState} from 'react';
+import {FaBell, FaSignOutAlt, FaUserCircle} from 'react-icons/fa'; // Import React Icons
+import {useNavigate} from 'react-router-dom'; // Import useNavigate
 
 const Header = () => {
   const navigate = useNavigate();

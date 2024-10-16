@@ -1,12 +1,12 @@
 // StateDropdown.tsx
 
-import { useState } from 'react';
-import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react';
-import { ChevronUpDownIcon } from '@heroicons/react/20/solid';
+import {Listbox, ListboxButton, ListboxOption, ListboxOptions} from '@headlessui/react';
+import {ChevronUpDownIcon} from '@heroicons/react/20/solid';
+// import { useState } from "react";
 
-type State = {
-  code: string;
-  name: string;
+export type State = {
+    code: string;
+    name: string;
 };
 
 const states: State[] = [
@@ -62,27 +62,34 @@ const states: State[] = [
   { code: 'WY', name: 'Wyoming' }
 ];
 
-export function StateDropdown() {
-  const [selectedState, setSelectedState] = useState<State | null>(null);
+interface StateDropdownProperties {
+    selectedState: State | null;
+    setSelectedState: (state: State | null) => void;
+}
 
-  return (
-    <Listbox value={selectedState} onChange={setSelectedState}>
-      <div className="relative mt-2">
-        <ListboxButton className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6">
-        {selectedState ? `${selectedState.code} - ${selectedState.name}` : 'Select state'}
-          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+export default function StateDropdown({ selectedState, setSelectedState }: StateDropdownProperties) {
+    // const handleSelection = (state: State) => {
+    //     setSelectedState(state);
+    // };
+
+    return (
+      <Listbox value={selectedState} onChange={setSelectedState}>
+        <div className="relative mt-2">
+          <ListboxButton className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6">
+            {selectedState ? `${selectedState.name}` : 'Select state'}
+            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
             <ChevronUpDownIcon aria-hidden="true" className="h-5 w-5 text-gray-400" />
           </span>
-        </ListboxButton>
+          </ListboxButton>
 
-        <ListboxOptions className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-          {states.map((state) => (
-            <ListboxOption key={state.code} value={state} className="cursor-default select-none py-2 pl-3 pr-9 text-gray-900">
-              <span className="block truncate">{state.code} - {state.name}</span>
-            </ListboxOption>
-          ))}
-        </ListboxOptions>
-      </div>
-    </Listbox>
-  );
+          <ListboxOptions className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+            {states.map((state) => (
+                <ListboxOption key={state.code} value={state} className="cursor-default select-none py-2 pl-3 pr-9 text-gray-900">
+                  <span className="block truncate">{state.name}</span>
+                </ListboxOption>
+            ))}
+          </ListboxOptions>
+        </div>
+      </Listbox>
+    );
 }

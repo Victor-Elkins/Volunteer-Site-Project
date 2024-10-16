@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { Label, Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react'
-import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
+// import { useState } from 'react'
+import {Label, Listbox, ListboxButton, ListboxOption, ListboxOptions} from '@headlessui/react'
+import {CheckIcon, ChevronUpDownIcon} from '@heroicons/react/20/solid'
 
-type Skill = {
+export type Skill = {
   id: number
   name: string
 }
@@ -19,9 +19,12 @@ const skills: Skill[] = [
   { id: 7, name: 'Marketing' },
 ]
 
-export default function Dropdown() {
-  const [selectedSkills, setSelectedSkills] = useState<Skill[]>([])
+interface DropdownProperties {
+  selectedSkills: Skill[];
+  setSelectedSkills: (skills: Skill[]) => void;
+}
 
+export default function Dropdown({ selectedSkills, setSelectedSkills }: DropdownProperties) {
   const handleSelection = (skills: Skill[]) => {
     setSelectedSkills(skills)
   }

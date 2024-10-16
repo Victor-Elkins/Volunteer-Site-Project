@@ -5,6 +5,7 @@ const app = express();
 const notificationsRoutes = require('./routes/notifications');
 const historyRoutes = require('./routes/history');
 const authRoutes = require('./routes/auth');
+const userProfileRoute = require('./routes/userProfile');
 
 // Enable CORS for all routes
 app.use(cors({
@@ -25,6 +26,7 @@ app.use(session({
 app.use('/api/notifications', notificationsRoutes); // Notifications route
 app.use('/api/history', historyRoutes); // History route
 app.use('/api/auth', authRoutes); // Authorization route
+app.use('/api/userProfile', userProfileRoute);
 
 const PORT = process.env.PORT || 5000; // Use PORT from environment or default to 5000
 app.listen(PORT, () => {
