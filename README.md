@@ -10,4 +10,4 @@ Steps To Run:
 
 6. click on command prompt to open new terminal
 7. cd into the frontend
-8. npm run
+8. npm run dev
