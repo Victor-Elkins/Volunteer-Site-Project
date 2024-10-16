@@ -23,7 +23,6 @@ router.get('/', (req, res) => {
 
 // Replace with query search of database 
 // GET route to get volunteers with required skills who are not assigned to the event
-// GET route to get volunteers with required skills who are not assigned to the event
 router.get('/with-skills', (req, res) => {
     try {
         const requiredSkills = req.query.skills ? req.query.skills.split(',').map(skill => skill.trim()) : [];
@@ -35,8 +34,8 @@ router.get('/with-skills', (req, res) => {
                 volunteer.skills.some(vSkill => vSkill.toLowerCase() === skill.toLowerCase())
             );
 
-            // Check if the volunteer is either not assigned to the event or has just been removed
-            const notAssignedToEvent = !volunteer.EventAssigned.includes(eventName) || (volunteer.EventAssigned.length === 0);
+            // Check if the volunteer is assigned
+            const notAssignedToEvent = !volunteer.EventAssigned.includes(eventName);
 
             return hasRequiredSkills && notAssignedToEvent;
         });
@@ -49,10 +48,20 @@ router.get('/with-skills', (req, res) => {
 });
 
 // PUT route that updates volunteer events assigned 
-router.put('/events/:eventId/update-people', (req, res) => {
+router.put('/update-people', (req, res) => {
     const { eventId } = req.params;
     const { peopleAssigned, eventName, peopleToDelete } = req.body; 
+
     try {
+        const { peopleAssigned } = req.body;
+
+        // Validate that peopleAssigned is provided and is an array
+        if (!Array.isArray(peopleAssigned)) {
+            return res.status(400).json({ 
+                message: 'peopleAssigned must be an array' 
+            });
+        }
+
         peopleAssigned.forEach(personName => {
             const volunteer = volunteers.find(v => v.name === personName);
             if (volunteer && !volunteer.EventAssigned.includes(eventName)) {
@@ -67,7 +76,6 @@ router.put('/events/:eventId/update-people', (req, res) => {
             }
         });
 
-        // Respond with the updated volunteers
         res.status(200).json({ message: 'Event and volunteers updated successfully.', volunteers });
     } catch (error) {
         console.error('Error updating event people:', error);

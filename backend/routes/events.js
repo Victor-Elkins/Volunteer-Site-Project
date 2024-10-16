@@ -105,7 +105,7 @@ router.delete(
     const eventIndex = events.findIndex(event => event.id === id);
 
     if (eventIndex === -1) {
-      return res.status(404).json({ message: 'Event not found' });
+      return res.status(400).json({ message: 'Event not found' });
     }
 
     events.splice(eventIndex, 1); 
@@ -131,7 +131,7 @@ router.put(
 
     const event = events.find(event => event.id === eventId);
     if (!event) {
-      return res.status(404).json({ message: 'Event not found.' });
+      return res.status(400).json({ message: 'Event not found.' });
     }
     event.peopleAssigned = peopleAssigned;
 
@@ -178,7 +178,7 @@ router.put(
     const eventIndex = events.findIndex(event => event.id === id);
 
     if (eventIndex === -1) {
-      return res.status(404).json({ message: 'Event not found' });
+      return res.status(400).json({ message: 'Event not found' });
     }
 
     const eventDate = new Date(req.body.date);

@@ -113,21 +113,30 @@ const VolunteerMatching = () => {
   // Handle delete of selected people
   const handleDelete = async () => {
     if (currentEvent) {
-        // Get the names of the selected people to delete
-        const peopleToDelete = selectedPeople; 
-        const updatedPeople = currentEvent.peopleAssigned.filter(person => !peopleToDelete.includes(person));
-        
-        // Update events in the frontend state
-        setEvents(events.map(event =>
-            event.id === currentEvent.id
-                ? { ...event, peopleAssigned: updatedPeople }
-                : event
-        ));
-
-        // Send updated people and event name to the backend
-        await updateEventPeople(currentEvent.id, updatedPeople, currentEvent.name, peopleToDelete); 
-
-        closeModal();
+      const peopleToDelete = selectedPeople;
+      const updatedPeople = currentEvent.peopleAssigned.filter(person => !peopleToDelete.includes(person));
+  
+      setEvents(events.map(event =>
+        event.id === currentEvent.id
+          ? { ...event, peopleAssigned: updatedPeople }
+          : event
+      ));
+  
+      const updatedVolunteers = person.map(volunteer => {
+        if (peopleToDelete.includes(volunteer.name)) {
+          return {
+            ...volunteer,
+            EventAssigned: volunteer.EventAssigned.filter(eventName => eventName !== currentEvent.name), // Remove current event
+          };
+        }
+        return volunteer;
+      });
+  
+      setPerson(updatedVolunteers);
+  
+      await updateEventPeople(currentEvent.id, updatedPeople, currentEvent.name, peopleToDelete);
+  
+      closeModal();
     }
   };
 
@@ -142,6 +151,18 @@ const VolunteerMatching = () => {
           ? { ...event, peopleAssigned: updatedPeople }
           : event
       ));
+
+      const updatedVolunteers = person.map(volunteer => {
+        if (selectedPeople.includes(volunteer.name)) {
+          return {
+            ...volunteer,
+            EventAssigned: [...new Set([...volunteer.EventAssigned, currentEvent.name])], 
+          };
+        }
+        return volunteer;
+      });
+  
+      setPerson(updatedVolunteers);  
   
       await updateEventPeople(currentEvent.id, updatedPeople, currentEvent.name, selectedPeople); 
   
@@ -152,12 +173,13 @@ const VolunteerMatching = () => {
   // Update the backend with the new assigned people
   const updateEventPeople = async (eventId: number, updatedPeople: string[], eventName: string, peopleToDelete: string[]) => {
     try {
+        // Call the API to update the events
         const response = await fetch(`http://localhost:5000/api/events/${eventId}/update-people`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ peopleAssigned: updatedPeople, eventName, peopleToDelete }), // Send people to delete as well
+            body: JSON.stringify({ peopleAssigned: updatedPeople, eventName, peopleToDelete }),
         });
 
         if (!response.ok) {
@@ -169,7 +191,29 @@ const VolunteerMatching = () => {
     } catch (error) {
         console.error('Error updating event:', error);
     }
+
+    try {
+      // Call the API to update the volunteers
+      const response = await fetch(`http://localhost:5000/api/volunteer/update-people`, {
+          method: 'PUT',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ peopleAssigned: updatedPeople, eventName, peopleToDelete }),
+      });
+
+      if (!response.ok) {
+          throw new Error('Failed to update event');
+      }
+
+      const data = await response.json();
+      console.log('Volunteers updated:', data);
+  } catch (error) {
+      console.error('Error updating volunteers:', error);
+  }
+
   };
+
 
   // Return loading or error messages if applicable
   if (loading) {

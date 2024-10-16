@@ -113,7 +113,7 @@ describe('Events Routes', () => {
     // Test for deleting a non-existent event
     it('should return 404 for deleting a non-existent event', async () => {
       const res = await request(app).delete('/api/events/999');
-      expect(res.statusCode).toEqual(404);
+      expect(res.statusCode).toEqual(400);
       expect(res.body).toHaveProperty('message', 'Event not found');
     });
 
@@ -166,7 +166,188 @@ describe('Events Routes', () => {
         peopleAssigned: ['John Doe'],
       });
 
-      expect(res.statusCode).toEqual(404);
+      expect(res.statusCode).toEqual(400);
       expect(res.body).toHaveProperty('message', 'Event not found.');
     });
+
+    // Test for missing Input Validation (event name) while updating
+  it('should return 400 for missing event name when updating', async () => {
+    const createRes = await request(app).post('/api/events').send({ 
+      name: 'Initial Event', 
+      date: '2024-10-25', 
+      description: 'Initial description', 
+      location: 'Initial Location',
+      urgency: 'Low',
+      skills: ['Skill 1']
+    });
+    
+    const eventId = createRes.body.id;
+
+    const res = await request(app).put(`/api/events/${eventId}`).send({ 
+      description: 'Updated description', 
+      location: 'Updated Location',
+      urgency: 'Medium',
+      date: '2024-11-25',
+      skills: ['Skill 1'] 
+    });
+    expect(res.statusCode).toEqual(400);
+    expect(res.body.errors).toEqual(expect.arrayContaining([
+      expect.objectContaining({ msg: 'Event name is required' }),
+    ]));
+  });
+
+  // Test for missing Input Validation (description) while updating
+  it('should return 400 for missing event description when updating', async () => {
+    const createRes = await request(app).post('/api/events').send({ 
+      name: 'Initial Event', 
+      date: '2024-10-25', 
+      description: 'Initial description', 
+      location: 'Initial Location',
+      urgency: 'Low',
+      skills: ['Skill 1']
+    });
+    
+    const eventId = createRes.body.id;
+
+    const res = await request(app).put(`/api/events/${eventId}`).send({ 
+      name: 'Updated Event', 
+      location: 'Updated Location',
+      urgency: 'Medium',
+      date: '2024-11-25',
+      skills: ['Skill 1'] 
+    });
+    expect(res.statusCode).toEqual(400);
+    expect(res.body.errors).toEqual(expect.arrayContaining([
+      expect.objectContaining({ msg: 'Event description is required' }),
+    ]));
+  });
+
+  // Test for missing Input Validation (location) while updating
+  it('should return 400 for missing location when updating', async () => {
+    const createRes = await request(app).post('/api/events').send({ 
+      name: 'Initial Event', 
+      date: '2024-10-25', 
+      description: 'Initial description', 
+      location: 'Initial Location',
+      urgency: 'Low',
+      skills: ['Skill 1']
+    });
+    
+    const eventId = createRes.body.id;
+
+    const res = await request(app).put(`/api/events/${eventId}`).send({ 
+      name: 'Updated Event', 
+      description: 'Updated description',
+      urgency: 'Medium',
+      date: '2024-11-25',
+      skills: ['Skill 1'] 
+    });
+    expect(res.statusCode).toEqual(400);
+    expect(res.body.errors).toEqual(expect.arrayContaining([
+      expect.objectContaining({ msg: 'Location is required' }),
+    ]));
+  });
+
+  // Test for missing Input Validation (urgency) while updating
+  it('should return 400 for missing urgency when updating', async () => {
+    const createRes = await request(app).post('/api/events').send({ 
+      name: 'Initial Event', 
+      date: '2024-10-25', 
+      description: 'Initial description', 
+      location: 'Initial Location',
+      urgency: 'Low',
+      skills: ['Skill 1']
+    });
+    
+    const eventId = createRes.body.id;
+
+    const res = await request(app).put(`/api/events/${eventId}`).send({ 
+      name: 'Updated Event', 
+      description: 'Updated description',
+      location: 'Updated Location',
+      date: '2024-11-25',
+      skills: ['Skill 1'] 
+    });
+    expect(res.statusCode).toEqual(400);
+    expect(res.body.errors).toEqual(expect.arrayContaining([
+      expect.objectContaining({ msg: 'Urgency is required' }),
+    ]));
+  });
+
+  // Test for missing Input Validation (date) while updating
+  it('should return 400 for missing date when updating', async () => {
+    const createRes = await request(app).post('/api/events').send({ 
+      name: 'Initial Event', 
+      date: '2024-10-25', 
+      description: 'Initial description', 
+      location: 'Initial Location',
+      urgency: 'Low',
+      skills: ['Skill 1']
+    });
+    
+    const eventId = createRes.body.id;
+
+    const res = await request(app).put(`/api/events/${eventId}`).send({ 
+      name: 'Updated Event', 
+      description: 'Updated description',
+      location: 'Updated Location',
+      urgency: 'Medium',
+      skills: ['Skill 1'] 
+    });
+    expect(res.statusCode).toEqual(400);
+    expect(res.body.errors).toEqual(expect.arrayContaining([
+      expect.objectContaining({ msg: 'Event date is required' }),
+    ]));
+  });
+
+  // Test for missing Input Validation (skills) while updating
+  it('should return 400 for missing skills when updating', async () => {
+    const createRes = await request(app).post('/api/events').send({ 
+      name: 'Initial Event', 
+      date: '2024-10-25', 
+      description: 'Initial description', 
+      location: 'Initial Location',
+      urgency: 'Low',
+      skills: ['Skill 1']
+    });
+    
+    const eventId = createRes.body.id;
+
+    const res = await request(app).put(`/api/events/${eventId}`).send({ 
+      name: 'Updated Event', 
+      date: '2024-11-25', 
+      description: 'Updated description',
+      location: 'Updated Location',
+      urgency: 'Medium',
+    });
+    expect(res.statusCode).toEqual(400);
+    expect(res.body.errors).toEqual(expect.arrayContaining([
+      expect.objectContaining({ msg: 'At least one skill must be selected' }),
+    ]));
+  });
+
+  // Test for past date validation while updating
+  it('should return 400 for past event date when updating', async () => {
+    const createRes = await request(app).post('/api/events').send({ 
+      name: 'Initial Event', 
+      date: '2024-10-25', 
+      description: 'Initial description', 
+      location: 'Initial Location',
+      urgency: 'Low',
+      skills: ['Skill 1']
+    });
+    
+    const eventId = createRes.body.id;
+
+    const res = await request(app).put(`/api/events/${eventId}`).send({ 
+      name: 'Updated Event', 
+      date: '2020-01-01', // A date in the past
+      description: 'Updated description',
+      location: 'Updated Location',
+      urgency: 'Medium',
+      skills: ['Skill 1'] 
+    });
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toHaveProperty('message', 'The event date cannot be in the past.');
+  });
 });
