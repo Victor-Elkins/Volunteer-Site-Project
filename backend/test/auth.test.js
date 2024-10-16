@@ -1,9 +1,18 @@
 const request = require('supertest');
 const express = require('express');
-const authRoutes = require('../routes/auth'); // Adjust the path as necessary
+const session = require('express-session');
+const authRoutes = require('../routes/auth');
 
 const app = express();
 app.use(express.json());
+
+app.use(session({
+  secret: '00d4287e129abc006ad2be920d733c2e', // only hard-coded for development
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false, maxAge: 1000 * 60 * 60 } // 1-hour session lifetime
+}));
+
 app.use('/api/auth', authRoutes);
 
 // Mock the in-memory users store
@@ -117,4 +126,53 @@ describe('Auth Routes', () => {
       expect(res.body).toHaveProperty('message', 'Password is required');
     });
   });
+
+  describe('GET /api/auth/check-auth', () => {
+    it('should return isAuthenticated: true if user is logged in', async () => {
+      // Register and login a user to set up a session
+      await request(app)
+        .post('/api/auth/register')
+        .send({ email: 'testuser@example.com', password: 'Password123!' });
+      
+      const loginRes = await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'testuser@example.com', password: 'Password123!' });
+  
+      // Check authentication
+      const res = await request(app).get('/api/auth/check-auth').set('Cookie', loginRes.headers['set-cookie']);
+      
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveProperty('isAuthenticated', true);
+      expect(res.body).toHaveProperty('user.email', 'testuser@example.com');
+    });
+  
+    it('should return isAuthenticated: false if user is not logged in', async () => {
+      const res = await request(app).get('/api/auth/check-auth');
+  
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveProperty('isAuthenticated', false);
+    });
+  });
+  
+
+  describe('POST /api/auth/logout', () => {
+    it('should successfully logout the user', async () => {
+      // Register a user first
+      await request(app)
+        .post('/api/auth/register')
+        .send({ email: 'logout@example.com', password: 'Password123!' });
+  
+      // Log in the user
+      await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'logout@example.com', password: 'Password123!' });
+  
+      // Perform logout
+      const res = await request(app).post('/api/auth/logout');
+      
+      // Expect a successful logout response
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveProperty('message', 'Logout successful');
+    });
+  });  
 });
