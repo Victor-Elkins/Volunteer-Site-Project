@@ -58,17 +58,15 @@ router.post(
 
         if (!req.session || !req.session.user || !req.session.user.email) {
             console.log('User session or email are not valid');
-            console.log(req.session);
             return res.status(500).json({ message: 'User session or email are not valid' });
         }
 
         const userEmail = req.session.user.email;
-        console.log('Users: ', users);
         const userIndex = users.findIndex(user => user.email === userEmail);
-        console.log(userIndex);
 
         if (userIndex !== -1) {
             users[userIndex] = {
+                ...users[userIndex],
                 fullName,
                 streetAddress,
                 streetAddress2,
@@ -79,7 +77,6 @@ router.post(
                 preferences: preferences || [],
                 availability,
             }
-            console.log('Users: ', users);
             return res.status(200).json(users[userIndex]);
         } else {
             console.log('User not found');
@@ -93,11 +90,14 @@ router.get('/', (req, res) => {
     res.json(users);
 });
 
-router.get('/:id', (req, res) => {
-    const profile = users.find(p => p.id === parseInt(req.params.id));
+router.get('/:email', (req, res) => {
+    const userEmail = req.params.email;
+    const profile = users.find(user => user.email === userEmail);
+
     if (!profile) {
         return res.status(404).json({ message: 'Profile not found' });
     }
+
     res.json(profile);
 });
 
