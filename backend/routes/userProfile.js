@@ -54,13 +54,21 @@ router.post(
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { id, fullName, streetAddress, streetAddress2, city, state, postalCode, skills, preferences, availability } = req.body;
+        const { fullName, streetAddress, streetAddress2, city, state, postalCode, skills, preferences, availability } = req.body;
 
-        const existingUserIndex = users.findIndex(user => user.id === parseInt(id));
+        if (!req.session || !req.session.user || !req.session.user.email) {
+            console.log('User session or email are not valid');
+            console.log(req.session);
+            return res.status(500).json({ message: 'User session or email are not valid' });
+        }
 
-        if (existingUserIndex !== -1) {
-            users[existingUserIndex] = {
-                id: parseInt(id),
+        const userEmail = req.session.user.email;
+        console.log(userEmail);
+        const userIndex = users.findIndex(email => email === userEmail);
+        console.log(userIndex);
+
+        if (userIndex !== -1) {
+            users[userIndex] = {
                 fullName,
                 streetAddress,
                 streetAddress2,
@@ -71,30 +79,11 @@ router.post(
                 preferences: preferences || [],
                 availability,
             }
-            return res.status(200).json(profiles[existingUserIndex]);
+            return res.status(200).json(users[userIndex]);
+        } else {
+            console.log('User not found');
+            return res.status(404).json({ message: 'User not found' });
         }
-
-        const newProfile = {
-            id: users.length + 1,
-            fullName: req.body.fullName,
-            streetAddress: req.body.streetAddress,
-            city: req.body.city,
-            state: req.body.state,
-            postalCode: req.body.postalCode,
-            skills: req.body.skills,
-            preferences: req.body.preferences || [], // optional
-            availability: req.body.availability,
-        };
-
-        if (req.body.preferences) {
-            newProfile.preferences = req.body.preferences;
-        }
-        if (req.body.streetAddress2) {
-            newProfile.streetAddress2 = req.body.streetAddress2;
-        }
-
-        users.push(newProfile);
-        res.status(201).json(newProfile); // Created profile response
     }
 );
 

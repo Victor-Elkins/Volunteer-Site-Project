@@ -28,7 +28,7 @@ app.use(session({
 app.use('/api/notifications', notificationsRoutes); // Notifications route
 app.use('/api/history', historyRoutes); // History route
 app.use('/api/auth', authRoutes); // Authorization route
-app.use('/api/userProfile', userProfileRoute);
+app.use('/api/userProfile', userProfileRoute); // User profile route
 app.use('/api/events', eventsRoutes); // Event route
 app.use('/api/volunteer', volunteerRoutes) // Volunteer route
 
