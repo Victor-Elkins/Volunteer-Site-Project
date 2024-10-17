@@ -1,6 +1,4 @@
-// ProfileEdit.tsx
-
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import Header from "../Components/Header";
 import Dropdown from "../Components/Dropdown";
 import StateDropdown from "../Components/StateDropdown";
@@ -20,6 +18,45 @@ export default function ProfileEdit() {
     const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
     const [availability, setAvailability] = useState<Date[]>([]);
     const [successMessageVisible, setSuccessMessageVisible] = useState(false);
+
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            try {
+                const response = await fetch("http://localhost:5000/api/userProfile", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: 'include',
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data);
+                    console.log(data[0].fullName)
+
+                    // Populate form fields with user profile data
+                    setFullName(data[0].fullName || "");
+                    setStreetAddress(data[0].streetAddress || "");
+                    setStreetAddress2(data[0].streetAddress2 || "");
+                    setCity(data[0].city || "");
+                    setSelectedState(data[0].state ? { name: data[0].state, code: data[0].state } : null);
+                    setPostalCode(data[0].postalCode || "");
+                    setPreferences(data[0].preferences || "");
+                    setSelectedSkills((data[0].skills && Array.isArray(data[0].skills)) ? data[0].skills.map((skill: string) => ({ name: skill })) : []);
+                    setAvailability(data[0].availability && Array.isArray(data[0].availability)
+                        ? data[0].availability.map((dateString: string | number | Date) => new Date(dateString))
+                        : []);
+                } else {
+                    console.error("Failed to fetch user profile.");
+                }
+            } catch (error) {
+                console.error("Error fetching user profile:", error);
+            }
+        };
+
+        fetchUserProfile();
+    }, []);
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {

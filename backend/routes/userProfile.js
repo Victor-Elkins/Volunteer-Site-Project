@@ -57,31 +57,26 @@ router.post(
         const { fullName, streetAddress, streetAddress2, city, state, postalCode, skills, preferences, availability } = req.body;
 
         if (!req.session || !req.session.user || !req.session.user.email) {
-            console.log('User session or email are not valid');
             return res.status(500).json({ message: 'User session or email are not valid' });
         }
 
         const userEmail = req.session.user.email;
         const userIndex = users.findIndex(user => user.email === userEmail);
 
-        if (userIndex !== -1) {
-            users[userIndex] = {
-                ...users[userIndex],
-                fullName,
-                streetAddress,
-                streetAddress2,
-                city,
-                state,
-                postalCode,
-                skills,
-                preferences: preferences || [],
-                availability,
-            }
-            return res.status(200).json(users[userIndex]);
-        } else {
-            console.log('User not found');
-            return res.status(404).json({ message: 'User not found' });
-        }
+        users[userIndex] = {
+            ...users[userIndex],
+            fullName,
+            streetAddress,
+            streetAddress2,
+            city,
+            state,
+            postalCode,
+            skills,
+            preferences: preferences || [],
+            availability,
+        };
+        return res.status(200).json(users[userIndex]);
+
     }
 );
 

@@ -315,4 +315,23 @@ describe('User Profile Routes', () => {
         expect(res.statusCode).toEqual(404);
         expect(res.body).toHaveProperty('message', 'Profile not found');
     });
+
+    it('should return 500 if session or email is not valid', async () => {
+        // Make a request without a valid session
+        const res = await request(app)
+            .post('/api/userProfile')
+            .send({
+                fullName: 'John Doe',
+                streetAddress: '123 Main St',
+                streetAddress2: '',
+                city: 'New York',
+                state: 'NY',
+                postalCode: '10001',
+                skills: ['Programming'],
+                availability: ['2024-10-20']
+        });
+
+        expect(res.status).toBe(500);
+        expect(res.body.message).toBe('User session or email are not valid');
+    });
 });
