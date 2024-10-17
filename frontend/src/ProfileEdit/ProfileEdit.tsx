@@ -110,17 +110,6 @@ export default function ProfileEdit() {
                 </div>
             )}
 
-            {errors.length > 0 && (
-                <div className="mt-4">
-                    <h3 className="text-red-500">Please fix the following errors:</h3>
-                    <ul className="list-disc list-inside text-red-500">
-                        {errors.map((error, index) => (
-                            <li key={index}>{error}</li>
-                        ))}
-                    </ul>
-                </div>
-            )}
-
             <div className="space-y-12">
                 <Header />
                 {/* Personal Info Section */}
@@ -271,10 +260,18 @@ export default function ProfileEdit() {
                 </div>
             </div>
 
+            {errors.length > 0 && (
+                <div className="mt-4">
+                    <h3 className="text-red-500">Please fix the following errors:</h3>
+                    <ul className="list-disc list-inside text-red-500">
+                        {errors.map((error, index) => (
+                            <li key={index}>{error}</li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
             <div className="mt-6 flex items-center justify-end gap-x-6">
-                <button type="button" className="text-sm font-semibold leading-6 text-gray-900">
-                    Cancel
-                </button>
                 <button
                     type="submit"
                     className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
