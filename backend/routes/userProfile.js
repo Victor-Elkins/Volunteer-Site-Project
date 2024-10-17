@@ -63,8 +63,8 @@ router.post(
         }
 
         const userEmail = req.session.user.email;
-        console.log(userEmail);
-        const userIndex = users.findIndex(email => email === userEmail);
+        console.log('Users: ', users);
+        const userIndex = users.findIndex(user => user.email === userEmail);
         console.log(userIndex);
 
         if (userIndex !== -1) {
@@ -79,6 +79,7 @@ router.post(
                 preferences: preferences || [],
                 availability,
             }
+            console.log('Users: ', users);
             return res.status(200).json(users[userIndex]);
         } else {
             console.log('User not found');
