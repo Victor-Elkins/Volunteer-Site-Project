@@ -3,7 +3,7 @@ const { body, param, validationResult } = require('express-validator');
 const router = express.Router();
 
 // In-memory store for history events
-const history = [
+let history = [
   { id: 1, event: 'Volunteer Recruitment', date: '2024-10-01', status: 'Completed' },
   { id: 2, event: 'Event Planning Meeting', date: '2024-10-05', status: 'Ongoing' },
   { id: 3, event: 'Fundraising Drive', date: '2024-10-10', status: 'Scheduled' },
@@ -30,7 +30,7 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
     const newHistory = {
-      id: history.length + 1, // Auto-increment ID
+      id: history.length > 0 ? history[history.length - 1].id + 1 : 1, // Auto-increment ID
       event: req.body.event,
       date: req.body.date,
       status: req.body.status,
@@ -51,7 +51,7 @@ router.delete(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id, 10);
     const index = history.findIndex(item => item.id === id);
     if (index === -1) {
       return res.status(404).json({ message: 'History item not found' });
@@ -61,4 +61,5 @@ router.delete(
   }
 );
 
+// Export the router
 module.exports = router;
