@@ -61,9 +61,9 @@ const EventForm = () => {
     }, []);
 
     // Function to remove event by id
-    const removeEvent = async (id: number) => {
+    const removeEvent = async (event1 : Event) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/events/${id}`, {
+            const response = await fetch(`http://localhost:5000/api/events/${event1.id}`, {
                 method: 'DELETE',
             });
 
@@ -71,7 +71,18 @@ const EventForm = () => {
                 throw new Error('Failed to remove event');
             }
 
-            setEvents(events.filter(event => event.id !== id));
+            setEvents(events.filter(event => event.id !== event1.id));
+        } catch (error) {
+            console.error('Error removing event:', error);
+        }
+
+        try {
+            const response = await fetch(`http://localhost:5000/api/volunteer/remove-event/${event1.name}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to remove event from volunteers');
+            }
         } catch (error) {
             console.error('Error removing event:', error);
         }
@@ -242,7 +253,7 @@ const EventForm = () => {
                         <li key={event.id} className="relative border-b border-gray-200">
                             <span className="flex justify-between items-center p-2 pb-1">
                                 <span>{event.name}</span>
-                                <button className="text-red-500 hover:text-red-700" onClick={() => removeEvent(event.id)}>
+                                <button className="text-red-500 hover:text-red-700" onClick={() => removeEvent(event)}>
                                     Remove
                                 </button>
                             </span>

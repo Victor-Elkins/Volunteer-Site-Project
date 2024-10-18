@@ -83,4 +83,20 @@ router.put('/update-people', (req, res) => {
     }
 });
 
+// DELETE route to remove event from all volunteers
+router.delete('/remove-event/:eventName', (req, res) => {
+    const { eventName } = req.params;
+
+    try {
+        volunteers.forEach(volunteer => {
+            volunteer.EventAssigned = volunteer.EventAssigned.filter(event => event !== eventName);
+        });
+
+        res.status(200).json({ message: `Event "${eventName}" removed from all volunteers.`, volunteers });
+    } catch (error) {
+        console.error('Error removing event from volunteers:', error);
+        res.status(500).json({ message: 'An error occurred while removing the event from volunteers.', error });
+    }
+});
+
 module.exports = router;

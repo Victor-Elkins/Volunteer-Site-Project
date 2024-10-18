@@ -68,4 +68,18 @@ describe('Volunteer Matching API', () => {
         ]));
     });
 
+    // Test for removing an event from all volunteers (DELETE volunteer route)
+    it('should remove an event from all volunteers', async () => {
+        const eventName = 'Event One';
+
+        const res = await request(app)
+            .delete(`/api/volunteer/remove-event/${eventName}`);
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body.message).toEqual(`Event "${eventName}" removed from all volunteers.`);
+        
+        res.body.volunteers.forEach(volunteer => {
+            expect(volunteer.EventAssigned).not.toContain(eventName);
+        });
+    });
 });
