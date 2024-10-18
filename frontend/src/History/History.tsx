@@ -9,7 +9,7 @@ interface HistoryEntry {
   status: string;
 }
 
-const History = () => {
+const History: React.FC = () => {
   const [volunteerHistory, setVolunteerHistory] = useState<HistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +34,6 @@ const History = () => {
         setLoading(false);
       }
     };
-
     fetchHistory();
   }, []);
 

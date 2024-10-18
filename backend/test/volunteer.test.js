@@ -68,6 +68,22 @@ describe('Volunteer Matching API', () => {
         ]));
     });
 
+    // Test for invalid input for updating volunteers (PUT volunteer route)
+    it('should return a 400 error when peopleAssigned is not an array', async () => {
+        const updateData = {
+            peopleAssigned: 'NotAnArray', // Invalid input
+            eventName: 'Event One',
+            peopleToDelete: []
+        };
+
+        const res = await request(app)
+            .put('/api/volunteer/update-people')
+            .send(updateData);
+
+        expect(res.statusCode).toEqual(400);
+        expect(res.body.message).toEqual('peopleAssigned must be an array');
+    });
+
     // Test for removing an event from all volunteers (DELETE volunteer route)
     it('should remove an event from all volunteers', async () => {
         const eventName = 'Event One';
@@ -81,5 +97,16 @@ describe('Volunteer Matching API', () => {
         res.body.volunteers.forEach(volunteer => {
             expect(volunteer.EventAssigned).not.toContain(eventName);
         });
+    });
+
+    // Test for deleting a non-existing event (DELETE volunteer route)
+    it('should return a 200 message when removing a non-existing event', async () => {
+        const eventName = 'Non-Existing Event';
+
+        const res = await request(app)
+            .delete(`/api/volunteer/remove-event/${eventName}`);
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body.message).toEqual(`Event "${eventName}" removed from all volunteers.`);
     });
 });
