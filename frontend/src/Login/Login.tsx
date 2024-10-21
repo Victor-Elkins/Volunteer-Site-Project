@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   // State for username, password, and showPassword
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(''); // State for error messages
@@ -24,29 +24,29 @@ const Login = () => {
 
     try {
       const response = await fetch('http://localhost:5000/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }), // Send the credentials as JSON
-      credentials: 'include',
-  });
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }), // Send the credentials as JSON
+        credentials: 'include',
+      });
 
-  // Check if the response status is not ok (e.g., 400 or 401)
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || 'Login failed');
-  }
+      // Check if the response status is not ok (e.g., 400 or 401)
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed');
+      }
 
-  navigate('/home');
-  } catch (err) {
-    if (err instanceof Error) {
-      setError(err.message);
-    } else {
-      setError('An unexpected error occurred');
+      navigate('/home');
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
     }
-  }
-};
+  };
 
   return (
     <div className="flex items-center justify-center mt-10">
@@ -72,9 +72,9 @@ const Login = () => {
             id="username"
             type="text"
             className="w-full px-3 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)} // Update username state
+            placeholder="Enter your username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)} // Update username state
             required
           />
           <div className="flex justify-end pt-1">

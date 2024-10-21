@@ -4,9 +4,9 @@ import Footer from '../Components/Footer';
 import { useNavigate } from 'react-router-dom';
 
 const Registration = () => {
-  // State to handle email and password
-  const [email, setEmail] = useState('');
-  const [isEmailValid, setIsEmailValid] = useState(true);  // Track email validity
+  // State to handle username and password
+  const [username, setUsername] = useState('');
+  const [isUsernameValid, setIsUsernameValid] = useState(true);  // Track username validity
   const [password, setPassword] = useState('');
   const [isPasswordValid, setIsPasswordValid] = useState(true);  // Track password validity
   const [showPassword, setShowPassword] = useState(false);
@@ -20,15 +20,15 @@ const Registration = () => {
     setShowPassword((prev) => !prev);
   };
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newEmail = e.target.value;
-    setEmail(newEmail);
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newUsername = e.target.value;
+    setUsername(newUsername);
 
     // Regular expression to validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const usernameRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    // Check if the email is valid
-    setIsEmailValid(emailRegex.test(newEmail));
+    // Check if the username (email) is valid
+    setIsUsernameValid(usernameRegex.test(newUsername));
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,7 +53,7 @@ const Registration = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email,
+          username,  // Send the username (email)
           password,
         }),
       });
@@ -96,54 +96,18 @@ const Registration = () => {
           </div>
         )}
 
-        {/* Name Field */}
-{/*
-        <div className="mb-4">
-          <div className="flex flex-col md:flex-row gap-4">
-*/}
-            {/* First Name */}
-{/*
-            <div className="flex-1">
-              <label className="block mb-2 text-sm font-bold text-gray-700 text-left">
-                First name 
-              </label>
-              <input 
-                id="first-name"
-                type="text"
-                className="w-full px-3 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-*/}
-            {/* Last Name */}
-{/*
-            <div className="flex-1">
-              <label className="block mb-2 text-sm font-bold text-gray-700 text-left">
-                Last name
-              </label>
-              <input 
-                id="last-name"
-                type="text"
-                className="w-full px-3 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-          </div>
-        </div>
-*/}
-
-        {/* Email Field */}
+        {/* Username Field */}
         <div className="mb-4">
           <label className="block mb-2 text-sm font-bold text-gray-700 text-left">
-            Email address
+            Username (Email address)
           </label>
           <input 
-            id="first-name"
+            id="username"
             type="email"
-            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isEmailValid ? 'border-gray-300' : 'border-red-500'}`}
+            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isUsernameValid ? 'border-gray-300' : 'border-red-500'}`}
             placeholder="example@email.com"
-            value={email}
-            onChange={handleEmailChange}
+            value={username}
+            onChange={handleUsernameChange}
             required
           />
         </div>
@@ -178,8 +142,8 @@ const Registration = () => {
           <a href="../Login" className="pl-2 pt-1 text-blue-500 font-medium hover:underline hover:text-blue-600">Back</a>
           <button
             type="submit"
-            className={`w-52 ${!isPasswordValid || !isEmailValid ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'} font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
-            disabled={!isPasswordValid || !isEmailValid}  // Disable if either email or password is invalid
+            className={`w-52 ${!isPasswordValid || !isUsernameValid ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'} font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
+            disabled={!isPasswordValid || !isUsernameValid}  // Disable if either username or password is invalid
           >
             Register
           </button>
@@ -190,4 +154,4 @@ const Registration = () => {
   )
 }
 
-export default Registration
+export default Registration;
