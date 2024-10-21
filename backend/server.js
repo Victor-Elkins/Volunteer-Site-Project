@@ -1,7 +1,8 @@
 const express = require('express');
 const session = require('express-session');
 const cors = require('cors');
-const app = express();
+const db = require('./db');
+
 const notificationsRoutes = require('./routes/notifications');
 const historyRoutes = require('./routes/history');
 const authRoutes = require('./routes/auth');
@@ -10,6 +11,7 @@ const eventsRoutes = require('./routes/events');
 const volunteerRoutes = require('./routes/volunteer');
 
 // Enable CORS for all routes
+const app = express();
 app.use(cors({
   origin: 'http://localhost:5173', // Frontend url
   credentials: true, // Allow cookies to be sent with requests
