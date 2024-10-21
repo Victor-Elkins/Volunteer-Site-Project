@@ -1,39 +1,89 @@
 const express = require('express');
 const bcrypt = require('bcrypt'); // password hashing
-const users = require('../users'); 
+const db = require('../db'); // Import the database connection
 
 const router = express.Router();
 
 // Registration route
 router.post('/register', async (req, res) => {
-  const { email, password } = req.body;
+  const { username, password } = req.body;
 
-  if (!email) return res.status(400).json({ message: 'Email is required' });
-  if (!password) return res.status(400).json({ message: 'Password is required' });
+  console.log('Incoming registration request:', { username, password });
 
-  const userExists = users.find(user => user.email === email);
-  if (userExists) return res.status(400).json({ message: 'User already exists' });
+  if (!username) {
+    console.log('Username missing in request.');
+    return res.status(400).json({ message: 'Username is required' });
+  }
+  
+  if (!password) {
+    console.log('Password missing in request.');
+    return res.status(400).json({ message: 'Password is required' });
+  }
 
-  const passwordHash = await bcrypt.hash(password, 10);
-  users.push({ email, passwordHash });
-  res.status(201).json({ message: 'User registered successfully' });
+  // Check if the user already exists in the database
+  const query = 'SELECT * FROM UserCredentials WHERE username = ?';
+  db.get(query, [username], async (err, user) => {
+    if (err) {
+      console.error('Database error while checking user:', err.message);
+      return res.status(500).json({ message: 'Database error' });
+    }
+
+    if (user) {
+      console.log('User already exists:', user);
+      return res.status(400).json({ message: 'User already exists' });
+    }
+
+    console.log('No existing user found, proceeding with registration.');
+    
+    // If no user exists, hash the password and insert into the database
+    try {
+      const passwordHash = await bcrypt.hash(password, 10);
+      const insertQuery = 'INSERT INTO UserCredentials (username, password) VALUES (?, ?)';
+      db.run(insertQuery, [username, passwordHash], (err) => {
+        if (err) {
+          console.error('Database error during user insertion:', err.message);
+          return res.status(500).json({ message: 'Failed to register user' });
+        }
+        console.log('User registered successfully:', username);
+        res.status(201).json({ message: 'User registered successfully' });
+      });
+    } catch (hashError) {
+      console.error('Error hashing password:', hashError);
+      return res.status(500).json({ message: 'Password hashing failed' });
+    }
+  });
 });
 
 // Login route
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { username, password } = req.body;
 
-  if (!email) return res.status(400).json({ message: 'Email is required' });
+  if (!username) return res.status(400).json({ message: 'Username is required' });
   if (!password) return res.status(400).json({ message: 'Password is required' });
 
-  const user = users.find(user => user.email === email);
-  if (!user) return res.status(404).json({ message: 'User not found' });
+  try {
+    // Find user in the database by username
+    db.get('SELECT * FROM UserCredentials WHERE username = ?', [username], async (err, user) => {
+      if (err) {
+        return res.status(500).json({ message: 'Database error' });
+      }
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
 
-  const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-  if (!isPasswordValid) return res.status(400).json({ message: 'Invalid credentials' });
+      // Compare the password with the stored hash
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        return res.status(400).json({ message: 'Invalid credentials' });
+      }
 
-  req.session.user = { email: user.email }; // Store user in session
-  res.json({ message: 'Login successful' });
+      // Store user info in session
+      req.session.user = { username: user.username };
+      res.json({ message: 'Login successful' });
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 // Check authentication route
