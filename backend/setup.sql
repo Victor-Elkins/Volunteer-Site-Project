@@ -32,9 +32,11 @@ CREATE TABLE IF NOT EXISTS VolunteerHistory (
     user_id INTEGER NOT NULL,
     event_id INTEGER NOT NULL,
     participation_date TEXT NOT NULL,
+    session_active INTEGER DEFAULT 0, -- 0 means inactive, 1 means active
     FOREIGN KEY (user_id) REFERENCES UserCredentials(id) ON DELETE CASCADE,
     FOREIGN KEY (event_id) REFERENCES EventDetails(id) ON DELETE CASCADE
 );
+
 CREATE TABLE IF NOT EXISTS VolunteerNotifications (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
