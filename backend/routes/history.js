@@ -1,65 +1,115 @@
 const express = require('express');
-const { body, param, validationResult } = require('express-validator');
+const { body, validationResult } = require('express-validator');
 const router = express.Router();
-
-// In-memory store for history events
-let history = [
-  { id: 1, event: 'Volunteer Recruitment', date: '2024-10-01', status: 'Completed' },
-  { id: 2, event: 'Event Planning Meeting', date: '2024-10-05', status: 'Ongoing' },
-  { id: 3, event: 'Fundraising Drive', date: '2024-10-10', status: 'Scheduled' },
-  { id: 4, event: 'Community Service Day', date: '2024-10-15', status: 'Completed' },
-  { id: 5, event: 'Feedback Session', date: '2024-10-18', status: 'Upcoming' },
-];
+const db = require('../db');
 
 // GET route to fetch all history events
 router.get('/', (req, res) => {
-  res.json(history);
+  const user = req.session.user.id;
+  console.log(user);
+  console.log('GET /api/history - Accessing history route');
+
+  const query = `
+    SELECT 
+      vh.id,
+      ed.event_name as event,
+      vh.participation_date as date,
+      ed.description,
+      ed.location
+    FROM VolunteerHistory vh
+    JOIN EventDetails ed ON vh.event_id = ed.id
+    WHERE vh.user_id = ?
+    ORDER BY vh.participation_date DESC
+  `;
+
+  console.log('Executing query to fetch all history entries');
+
+  db.all(query, [user], (err, rows) => {
+    if (err) {
+      console.error('Database error in history GET:', err);
+      return res.status(500).json({ message: 'Internal server error', error: err.message });
+    }
+    console.log('Found history entries:', rows?.length || 0);
+    res.json(rows);
+  });
 });
 
-// POST route to create a new history event
-router.post(
-  '/',
-  [
-    body('event').notEmpty().withMessage('Event field is required').isString().withMessage('Event must be a string'),
-    body('date').notEmpty().withMessage('Date field is required').isString().withMessage('Date must be a string'),
-    body('status').notEmpty().withMessage('Status field is required').isString().withMessage('Status must be a string'),
-  ],
-  (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+// Function to get a random event ID
+const getRandomEventId = (callback) => {
+  const query = `SELECT id FROM EventDetails ORDER BY RANDOM() LIMIT 1`;
+  
+  db.get(query, [], (err, row) => {
+    if (err) {
+      console.error('Error fetching random event ID:', err);
+      return callback(err, null);
     }
-    const newHistory = {
-      id: history.length > 0 ? history[history.length - 1].id + 1 : 1, // Auto-increment ID
-      event: req.body.event,
-      date: req.body.date,
-      status: req.body.status,
-    };
-    history.push(newHistory);
-    res.status(201).json(newHistory); // Set status to 201 for created
-  }
-);
+    callback(null, row ? row.id : null); // Return the event ID or null
+  });
+};
 
-// DELETE route to remove a history event by ID
-router.delete(
-  '/:id',
-  [
-    param('id').isInt({ gt: 0 }).withMessage('ID must be a positive integer'),
-  ],
-  (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    const id = parseInt(req.params.id, 10);
-    const index = history.findIndex(item => item.id === id);
-    if (index === -1) {
-      return res.status(404).json({ message: 'History item not found' });
-    }
-    history.splice(index, 1);
-    res.json({ message: 'History item removed' });
+// POST route to create a new history entry
+router.post('/', [
+  body('participation_date').isString().withMessage('Participation date is required'),
+], (req, res) => {
+  console.log('POST /api/history - Creating new history entry');
+  console.log('Request body:', req.body);
+  
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log('Validation errors:', errors.array());
+    return res.status(400).json({ errors: errors.array() });
   }
-);
 
-// Export the router
+  getRandomEventId((err, eventId) => {
+    if (err || !eventId) {
+      return res.status(500).json({ message: 'Could not retrieve event ID', error: err ? err.message : 'No event found' });
+    }
+
+    const query = `
+      INSERT INTO VolunteerHistory (user_id, event_id, participation_date)
+      VALUES (?, ?, ?)
+    `;
+
+    console.log('Executing insert query with params:', {
+      userId: req.session.user.id,
+      eventId: eventId,
+      date: req.body.participation_date
+    });
+
+    db.run(query, [
+      req.session.user.id, // Assuming user ID is stored in session
+      eventId,
+      req.body.participation_date
+    ], function(err) {
+      if (err) {
+        console.error('Database error in history POST:', err);
+        return res.status(500).json({ message: 'Internal server error', error: err.message });
+      }
+      
+      console.log('Successfully inserted history entry. ID:', this.lastID);
+      
+      const selectQuery = `
+        SELECT 
+          vh.id,
+          ed.event_name as event,
+          vh.participation_date as date,
+          ed.description,
+          ed.location
+        FROM VolunteerHistory vh
+        JOIN EventDetails ed ON vh.event_id = ed.id
+        WHERE vh.id = ?
+      `;
+
+      db.get(selectQuery, [this.lastID], (err, row) => {
+        if (err) {
+          console.error('Database error in fetching new history entry:', err);
+          return res.status(500).json({ message: 'Internal server error', error: err.message });
+        }
+        console.log('Returning new history entry:', row);
+        res.status(201).json(row);
+      });
+    });
+  });
+});
+
 module.exports = router;

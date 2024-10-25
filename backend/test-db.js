@@ -54,7 +54,7 @@ const addUserProfile = () => {
   });
 };
 
-// Function to add random data to EventDetails
+// Function to add random data to EventDetails, including a specific entry for event_id = 22
 const addEventDetails = () => {
   const insertEventSql = `
     INSERT INTO EventDetails (event_name, description, location, required_skills, urgency, event_date)
@@ -65,7 +65,32 @@ const addEventDetails = () => {
   const eventLocations = ['New York', 'Los Angeles', 'Houston', 'Miami'];
   const skillsList = ['Coding', 'Design', 'Management'];
 
-  for (let i = 0; i < 5; i++) {
+  // Add specific event for event_id = 22
+  const specificEvent = {
+    event_name: 'Special Charity Gala',
+    description: faker.lorem.sentence(),
+    location: 'Chicago',
+    required_skills: skillsList.join(', '),
+    urgency: Math.floor(Math.random() * 5) + 1,
+    event_date: faker.date.future().toISOString(),
+  };
+
+  db.run(insertEventSql, [
+    specificEvent.event_name,
+    specificEvent.description,
+    specificEvent.location,
+    specificEvent.required_skills,
+    specificEvent.urgency,
+    specificEvent.event_date
+  ], function(err) {
+    if (err) {
+      return console.error('Error inserting specific EventDetails for ID 22:', err.message);
+    }
+    console.log(`Inserted specific EventDetails for event_id 22 with ID: ${this.lastID}`);
+  });
+
+  // Generate additional random events
+  for (let i = 0; i < 4; i++) {
     const eventName = eventNames[Math.floor(Math.random() * eventNames.length)];
     const description = faker.lorem.sentence();
     const location = eventLocations[Math.floor(Math.random() * eventLocations.length)];

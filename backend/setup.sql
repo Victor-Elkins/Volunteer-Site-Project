@@ -35,3 +35,11 @@ CREATE TABLE IF NOT EXISTS VolunteerHistory (
     FOREIGN KEY (user_id) REFERENCES UserCredentials(id) ON DELETE CASCADE,
     FOREIGN KEY (event_id) REFERENCES EventDetails(id) ON DELETE CASCADE
 );
+CREATE TABLE IF NOT EXISTS VolunteerNotifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    event_id INTEGER NOT NULL,
+    notification_date TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES UserCredentials(id) ON DELETE CASCADE,
+    FOREIGN KEY (event_id) REFERENCES EventDetails(id) ON DELETE CASCADE
+);

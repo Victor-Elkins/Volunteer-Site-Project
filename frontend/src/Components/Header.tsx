@@ -6,11 +6,13 @@ import {useNavigate} from 'react-router-dom'; // Import useNavigate
 const Header = () => {
   const navigate = useNavigate();
   const [notificationCount, setNotificationCount] = useState(0);
-
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/notifications');
+        const response = await fetch('http://localhost:5000/api/notifications', {
+          method: 'GET',
+          credentials: 'include' // Ensures session cookie is sent with the request
+        });
         if (!response.ok) {
           throw new Error('Failed to fetch notifications');
         }
@@ -22,7 +24,6 @@ const Header = () => {
     };
     fetchNotifications();
   }, []);
-  
   
   
 
@@ -50,6 +51,7 @@ const Header = () => {
     navigate('/Volunteer-Matching-Form');
   }
 
+  
   const handleLogoutClick = async () => {
     try {
       // Send a request to the backend to log out the user

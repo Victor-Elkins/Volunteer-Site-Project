@@ -32,7 +32,7 @@ app.use('/api/history', historyRoutes); // History route
 app.use('/api/auth', authRoutes); // Authorization route
 app.use('/api/userProfile', userProfileRoute); // User profile route
 app.use('/api/events', eventsRoutes); // Event route
-app.use('/api/volunteer', volunteerRoutes) // Volunteer route
+app.use('/api/volunteer', volunteerRoutes); // Volunteer route
 
 const PORT = process.env.PORT || 5000; // Use PORT from environment or default to 5000
 app.listen(PORT, () => {
