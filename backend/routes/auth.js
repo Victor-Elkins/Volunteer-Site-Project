@@ -79,6 +79,7 @@ router.post('/login', async (req, res) => {
 
       // Store user info in session
       req.session.user = { username: user.username };
+      req.session.user.id  = user.id;
       res.json({ message: 'Login successful' });
     });
   } catch (error) {

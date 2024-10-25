@@ -1,95 +1,87 @@
 const request = require('supertest');
 const express = require('express');
 const historyRoutes = require('../routes/history'); // Adjust the path as necessary
+const db = require('../db'); // Ensure you import the db
+
+jest.mock('../db'); // Mock the db module
 
 const app = express();
 app.use(express.json());
 app.use('/api/history', historyRoutes);
 
 describe('History Routes', () => {
-  // Reset in-memory history before each test
   beforeEach(() => {
-    // Reset the history array to ensure tests are independent
-    historyRoutes.history = []; // Reset the in-memory store
+    jest.clearAllMocks(); // Clear mock history before each test
   });
 
-  it('should return 400 for missing event field', async () => {
-    const res = await request(app).post('/api/history').send({ date: '2024-09-01', status: 'Completed' });
+  it('should return 400 for missing event_id field', async () => {
+    const res = await request(app).post('/api/history').send({ participation_date: '2024-09-01' });
     expect(res.statusCode).toEqual(400);
     expect(res.body.errors).toEqual(expect.arrayContaining([
-      expect.objectContaining({ msg: 'Event field is required' }),
+      expect.objectContaining({ msg: 'Valid event ID is required' }),
     ]));
   });
 
-  it('should return 400 for missing date field', async () => {
-    const res = await request(app).post('/api/history').send({ event: 'Sample Event', status: 'Completed' });
+  it('should return 400 for missing participation_date field', async () => {
+    const res = await request(app).post('/api/history').send({ event_id: 1 });
     expect(res.statusCode).toEqual(400);
     expect(res.body.errors).toEqual(expect.arrayContaining([
-      expect.objectContaining({ msg: 'Date field is required' }),
-    ]));
-  });
-
-  it('should return 400 for missing status field', async () => {
-    const res = await request(app).post('/api/history').send({ event: 'Sample Event', date: '2024-09-01' });
-    expect(res.statusCode).toEqual(400);
-    expect(res.body.errors).toEqual(expect.arrayContaining([
-      expect.objectContaining({ msg: 'Status field is required' }),
+      expect.objectContaining({ msg: 'Participation date is required' }),
     ]));
   });
 
   it('should create a new history item', async () => {
-    const res = await request(app).post('/api/history').send({ event: 'Sample Event', date: '2024-09-01', status: 'Completed' });
+    // Mock db.run to simulate successful insertion
+    const mockLastID = 1;
+    db.run.mockImplementation((query, params, callback) => {
+      callback(null); // Simulate success
+    });
+
+    db.get.mockImplementation((query, params, callback) => {
+      const row = { id: mockLastID, event_name: 'Sample Event', participation_date: '2024-09-01', description: 'Description', location: 'Location' };
+      callback(null, row); // Simulate fetching the inserted entry
+    });
+
+    const res = await request(app).post('/api/history').send({ event_id: 1, participation_date: '2024-09-01' });
     expect(res.statusCode).toEqual(201);
-    expect(res.body).toHaveProperty('id');
+    expect(res.body).toHaveProperty('id', mockLastID);
     expect(res.body.event).toEqual('Sample Event');
     expect(res.body.date).toEqual('2024-09-01');
-    expect(res.body.status).toEqual('Completed');
   });
 
-  it('should delete a history item by ID', async () => {
-    // First, create an item to delete
-    const createRes = await request(app).post('/api/history').send({ event: 'Sample Event', date: '2024-09-01', status: 'Completed' });
-    const itemId = createRes.body.id;
+  it('should return 500 on database error during creation', async () => {
+    db.run.mockImplementation((query, params, callback) => {
+      callback(new Error('Database error')); // Simulate database error
+    });
 
-    const res = await request(app).delete(`/api/history/${itemId}`);
-    expect(res.statusCode).toEqual(200);
-    expect(res.body).toHaveProperty('message', 'History item removed');
+    const res = await request(app).post('/api/history').send({ event_id: 1, participation_date: '2024-09-01' });
+    expect(res.statusCode).toEqual(500);
+    expect(res.body).toHaveProperty('message', 'Internal server error');
   });
 
-  it('should return 404 for deleting a non-existent history item', async () => {
-    const res = await request(app).delete('/api/history/999');
-    expect(res.statusCode).toEqual(404);
-    expect(res.body).toHaveProperty('message', 'History item not found');
-  });
-
-  it('should return 400 for deleting with an invalid ID', async () => {
-    const res = await request(app).delete('/api/history/invalidId');
-    expect(res.statusCode).toBe(400);
-    expect(res.body.errors).toEqual(expect.arrayContaining([
-      expect.objectContaining({ msg: 'ID must be a positive integer' }),
-    ]));
-  });
-
-  // New test case to verify fetching all history events
   it('should return all history events', async () => {
-    // Mock the history array directly with actual items
     const mockHistory = [
-      { id: 1, event: 'Volunteer Recruitment', date: '2024-10-01', status: 'Completed' },
-      { id: 2, event: 'Event Planning Meeting', date: '2024-10-05', status: 'Ongoing' },
-      { id: 3, event: 'Fundraising Drive', date: '2024-10-10', status: 'Scheduled' },
-      { id: 4, event: 'Community Service Day', date: '2024-10-15', status: 'Completed' },
-      { id: 5, event: 'Feedback Session', date: '2024-10-18', status: 'Upcoming' },
-      { id: 6, event: 'Sample Event', date: '2024-09-01', status: 'Completed' }, // Add any additional items as needed
+      { id: 1, event_name: 'Volunteer Recruitment', participation_date: '2024-10-01', description: 'Recruiting volunteers', location: 'Community Center' },
+      { id: 2, event_name: 'Event Planning Meeting', participation_date: '2024-10-05', description: 'Planning for upcoming events', location: 'Library' },
     ];
 
-    // Override the in-memory history for the duration of this test
-    historyRoutes.history = mockHistory;
+    // Mock the db.all method to return mockHistory
+    db.all.mockImplementation((query, params, callback) => {
+      callback(null, mockHistory); // Simulate success
+    });
 
     const res = await request(app).get('/api/history');
     expect(res.statusCode).toEqual(200);
-    expect(res.body).toHaveLength(mockHistory.length); // Expecting the same length as the mock
-    expect(res.body).toEqual(expect.arrayContaining(mockHistory.map(item => 
-      expect.objectContaining(item)
-    )));
+    expect(res.body).toEqual(mockHistory);
+  });
+
+  it('should return 500 on database error when fetching history events', async () => {
+    db.all.mockImplementation((query, params, callback) => {
+      callback(new Error('Database error')); // Simulate database error
+    });
+
+    const res = await request(app).get('/api/history');
+    expect(res.statusCode).toEqual(500);
+    expect(res.body).toHaveProperty('message', 'Internal server error');
   });
 });

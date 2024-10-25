@@ -2,79 +2,81 @@ import React, { useState, useEffect } from 'react';
 import Header from '../Components/Header';
 import Footer from '../Components/Footer';
 
-// Define the structure of a Notification
-interface Notification {
+interface HistoryEntry {
   id: number;
-  message: string;
+  event: string;  // Changed from message to event
+  date: string;
 }
 
 const Notify: React.FC = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch notifications from the backend
+  // Fetch history from backend
   useEffect(() => {
-    const fetchNotifications = async () => {
+    const fetchHistory = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/notifications');
+        const response = await fetch("http://localhost:5000/api/history", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: 'include',
+        });
         if (!response.ok) {
-          throw new Error('Failed to fetch notifications');
+          throw new Error('Failed to fetch history');
         }
         const data = await response.json();
-        setNotifications(data);
-      } catch (err: any) {
-        setError(err.message || 'An unexpected error occurred');
+        setHistory(data);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          setError(error.message);
+        } else {
+          setError('An unknown error occurred');
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchNotifications();
+    fetchHistory();
   }, []);
 
-  // Remove a notification by ID
-  const removeNotification = async (id: number) => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/notifications/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) {
-        throw new Error('Failed to remove notification');
-      }
-      setNotifications(notifications.filter(notification => notification.id !== id));
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred while removing the notification');
-    }
-  };
-
   return (
-    <div className="p-4 max-w-lg mx-auto bg-white shadow-md rounded-lg">
+    <div className="p-4 max-w-4xl mx-auto bg-white shadow-md rounded-lg">
       <Header />
-      <h1 className="text-xl font-bold mb-4">Notifications</h1>
-
+      <h1 className="text-xl font-bold mb-4">History</h1>
       {loading ? (
-        <p className="text-gray-500">Loading notifications...</p>
+        <p>Loading...</p>
       ) : error ? (
-        <p className="text-red-500">{error}</p>
-      ) : notifications.length === 0 ? (
-        <p className="text-gray-500">No notifications</p>
+        <p>Error: {error}</p>
       ) : (
-        <ul className="space-y-2">
-          {notifications.map(notification => (
-            <li key={notification.id} className="flex justify-between items-center p-2 border-b border-gray-200">
-              <span>{notification.message}</span>
-              <button 
-                className="text-red-500 hover:text-red-700" 
-                onClick={() => removeNotification(notification.id)}
-              >
-                Remove
-              </button>
-            </li>
-          ))}
-        </ul>
+        <table className="w-full border-collapse border border-gray-200">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border border-gray-300 px-4 py-2 text-left">Event</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {history.length === 0 ? (
+              <tr>
+                <td colSpan={2} className="border border-gray-300 px-4 py-2 text-center text-gray-500">
+                  No history available
+                </td>
+              </tr>
+            ) : (
+              history.map((entry) => (
+                <tr key={entry.id}>
+                  <td className="border border-gray-300 px-4 py-2">{entry.event}</td>
+                  <td className="border border-gray-300 px-4 py-2">{entry.date}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       )}
-
       <Footer />
     </div>
   );

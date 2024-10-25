@@ -12,7 +12,7 @@ interface Event {
     date: string; 
     description: string;
     location: string;
-    urgency: 'Low' | 'Medium' | 'High'; 
+    urgency: 'Low' | 'Medium' | 'High' | 'Very High'; 
     skills: string[]; 
 }
 
@@ -22,7 +22,7 @@ interface formData {
     date: Date;
     description: string;
     location: string;
-    urgency: 'Low' | 'Medium' | 'High'; 
+    urgency: 'Low' | 'Medium' | 'High' | 'Very High'; 
     skills: string[]; 
 }
 
@@ -336,6 +336,7 @@ const EventForm = () => {
                                     <option value="Low">Low</option>
                                     <option value="Medium">Medium</option>
                                     <option value="High">High</option>
+                                    <option value="Very High">Very High</option>
                                 </select>
                             </label>
                             <div className="flex justify-end space-x-2 mt-4">

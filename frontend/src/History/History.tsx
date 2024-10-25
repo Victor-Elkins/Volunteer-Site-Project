@@ -6,7 +6,6 @@ interface HistoryEntry {
   id: number;
   event: string;
   date: string;
-  status: string;
 }
 
 const History: React.FC = () => {
@@ -18,7 +17,13 @@ const History: React.FC = () => {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/history');
+        const response = await fetch("http://localhost:5000/api/history", {
+          method: "GET",
+          headers: {
+              "Content-Type": "application/json",
+          },
+          credentials: 'include',
+      });
         if (!response.ok) {
           throw new Error('Failed to fetch history');
         }
@@ -51,13 +56,12 @@ const History: React.FC = () => {
             <tr className="bg-gray-100">
               <th className="border border-gray-300 px-4 py-2 text-left">Event</th>
               <th className="border border-gray-300 px-4 py-2 text-left">Date</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Status</th>
             </tr>
           </thead>
           <tbody>
             {volunteerHistory.length === 0 ? (
               <tr>
-                <td colSpan={3} className="border border-gray-300 px-4 py-2 text-center text-gray-500">
+                <td colSpan={2} className="border border-gray-300 px-4 py-2 text-center text-gray-500">
                   No history available
                 </td>
               </tr>
@@ -66,7 +70,6 @@ const History: React.FC = () => {
                 <tr key={entry.id}>
                   <td className="border border-gray-300 px-4 py-2">{entry.event}</td>
                   <td className="border border-gray-300 px-4 py-2">{entry.date}</td>
-                  <td className="border border-gray-300 px-4 py-2">{entry.status}</td>
                 </tr>
               ))
             )}
