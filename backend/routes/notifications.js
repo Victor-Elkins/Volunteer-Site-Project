@@ -13,17 +13,17 @@ router.get('/', (req, res) => {
   console.log('GET /api/notify - Accessing notifications route');
 
   const query = `
-    SELECT 
-      vh.id,
-      ed.event_name as event,
-      vh.participation_date as date,
-      ed.description,
-      ed.location
-    FROM VolunteerHistory vh
-    JOIN EventDetails ed ON vh.event_id = ed.id
-    WHERE vh.user_id = ?
-    ORDER BY vh.participation_date DESC
-  `;
+  SELECT 
+    vh.id,
+    ed.event_name as event,
+    vh.participation_date as date,
+    ed.description,
+    ed.location
+  FROM VolunteerHistory vh
+  JOIN EventDetails ed ON vh.event_id = ed.id
+  WHERE vh.user_id = ? AND vh.session_active = 1
+  ORDER BY vh.participation_date DESC
+`;
 
   console.log('Executing query to fetch notifications after current date');
 

@@ -2,22 +2,22 @@ import React, { useState, useEffect } from 'react';
 import Header from '../Components/Header';
 import Footer from '../Components/Footer';
 
-interface HistoryEntry {
+interface NotificationEntry {
   id: number;
-  event: string;  // Changed from message to event
+  event: string;  // Keeping this as event since it represents events in the notifications
   date: string;
 }
 
 const Notify: React.FC = () => {
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [notifications, setNotifications] = useState<NotificationEntry[]>([]); // Updated state name
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch history from backend
+  // Fetch notifications from the backend
   useEffect(() => {
-    const fetchHistory = async () => {
+    const fetchNotifications = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/history", {
+        const response = await fetch("http://localhost:5000/api/notifications", { // Updated endpoint
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -25,10 +25,10 @@ const Notify: React.FC = () => {
           credentials: 'include',
         });
         if (!response.ok) {
-          throw new Error('Failed to fetch history');
+          throw new Error('Failed to fetch notifications'); // Updated error message
         }
         const data = await response.json();
-        setHistory(data);
+        setNotifications(data); // Updated state setter
       } catch (error: unknown) {
         if (error instanceof Error) {
           setError(error.message);
@@ -40,13 +40,13 @@ const Notify: React.FC = () => {
       }
     };
 
-    fetchHistory();
+    fetchNotifications();
   }, []);
 
   return (
     <div className="p-4 max-w-4xl mx-auto bg-white shadow-md rounded-lg">
       <Header />
-      <h1 className="text-xl font-bold mb-4">History</h1>
+      <h1 className="text-xl font-bold mb-4">Notifications</h1> {/* Updated title */}
       {loading ? (
         <p>Loading...</p>
       ) : error ? (
@@ -60,14 +60,14 @@ const Notify: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {history.length === 0 ? (
+            {notifications.length === 0 ? ( // Updated to check notifications
               <tr>
                 <td colSpan={2} className="border border-gray-300 px-4 py-2 text-center text-gray-500">
-                  No history available
+                  No notifications available
                 </td>
               </tr>
             ) : (
-              history.map((entry) => (
+              notifications.map((entry) => (
                 <tr key={entry.id}>
                   <td className="border border-gray-300 px-4 py-2">{entry.event}</td>
                   <td className="border border-gray-300 px-4 py-2">{entry.date}</td>

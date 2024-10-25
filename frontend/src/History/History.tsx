@@ -6,6 +6,8 @@ interface HistoryEntry {
   id: number;
   event: string;
   date: string;
+  event_description: string; // New field for event description
+  event_location: string;     // New field for event location
 }
 
 const History: React.FC = () => {
@@ -20,10 +22,10 @@ const History: React.FC = () => {
         const response = await fetch("http://localhost:5000/api/history", {
           method: "GET",
           headers: {
-              "Content-Type": "application/json",
+            "Content-Type": "application/json",
           },
           credentials: 'include',
-      });
+        });
         if (!response.ok) {
           throw new Error('Failed to fetch history');
         }
@@ -56,12 +58,14 @@ const History: React.FC = () => {
             <tr className="bg-gray-100">
               <th className="border border-gray-300 px-4 py-2 text-left">Event</th>
               <th className="border border-gray-300 px-4 py-2 text-left">Date</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">Description</th> {/* New column for Description */}
+              <th className="border border-gray-300 px-4 py-2 text-left">Location</th> {/* New column for Location */}
             </tr>
           </thead>
           <tbody>
             {volunteerHistory.length === 0 ? (
               <tr>
-                <td colSpan={2} className="border border-gray-300 px-4 py-2 text-center text-gray-500">
+                <td colSpan={4} className="border border-gray-300 px-4 py-2 text-center text-gray-500">
                   No history available
                 </td>
               </tr>
@@ -70,6 +74,8 @@ const History: React.FC = () => {
                 <tr key={entry.id}>
                   <td className="border border-gray-300 px-4 py-2">{entry.event}</td>
                   <td className="border border-gray-300 px-4 py-2">{entry.date}</td>
+                  <td className="border border-gray-300 px-4 py-2">{entry.event_description}</td> {/* Description */}
+                  <td className="border border-gray-300 px-4 py-2">{entry.event_location}</td> {/* Location */}
                 </tr>
               ))
             )}

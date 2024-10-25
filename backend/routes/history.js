@@ -12,13 +12,13 @@ router.get('/', (req, res) => {
   const query = `
     SELECT 
       vh.id,
-      ed.event_name as event,
-      vh.participation_date as date,
-      ed.description,
-      ed.location
+      ed.event_name AS event,
+      vh.participation_date AS date,
+      ed.description AS event_description, 
+      ed.location AS event_location
     FROM VolunteerHistory vh
     JOIN EventDetails ed ON vh.event_id = ed.id
-    WHERE vh.user_id = ?
+    WHERE vh.user_id = ? AND vh.session_active = 0
     ORDER BY vh.participation_date DESC
   `;
 
