@@ -110,7 +110,7 @@ const addEventDetails = () => {
 // Function to add random data to VolunteerHistory (linking users to events)
 const addVolunteerHistory = () => {
   const insertHistorySql = `
-    INSERT INTO VolunteerHistory (user_id, event_id, participation_date) VALUES (?, ?, ?);
+    INSERT INTO VolunteerHistory (user_id, event_id, participation_date, session_active) VALUES (?, ?, ?, ?);
   `;
 
   db.all('SELECT id FROM UserCredentials', [], (err, users) => {
@@ -126,12 +126,13 @@ const addVolunteerHistory = () => {
       users.forEach((user) => {
         events.forEach((event) => {
           const participationDate = faker.date.past().toISOString();
+          const sessionActive = Math.random() < 0.5 ? 0 : 1; // Randomly set session as active or inactive
 
-          db.run(insertHistorySql, [user.id, event.id, participationDate], function(err) {
+          db.run(insertHistorySql, [user.id, event.id, participationDate, sessionActive], function(err) {
             if (err) {
               return console.error('Error inserting into VolunteerHistory:', err.message);
             }
-            console.log(`Inserted into VolunteerHistory: User ID ${user.id}, Event ID ${event.id}`);
+            console.log(`Inserted into VolunteerHistory: User ID ${user.id}, Event ID ${event.id}, Session Active: ${sessionActive}`);
           });
         });
       });

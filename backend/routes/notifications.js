@@ -14,15 +14,15 @@ router.get('/', (req, res) => {
 
   const query = `
     SELECT 
-      h.id,
-      e.event_name AS event,
-      h.date AS date,
-      e.description,
-      e.location
-    FROM History h
-    JOIN EventDetails e ON h.event_id = e.id
-    WHERE h.user_id = ? AND h.date > CURRENT_TIMESTAMP
-    ORDER BY h.date DESC
+      vh.id,
+      ed.event_name as event,
+      vh.participation_date as date,
+      ed.description,
+      ed.location
+    FROM VolunteerHistory vh
+    JOIN EventDetails ed ON vh.event_id = ed.id
+    WHERE vh.user_id = ?
+    ORDER BY vh.participation_date DESC
   `;
 
   console.log('Executing query to fetch notifications after current date');
