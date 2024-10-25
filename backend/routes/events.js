@@ -1,6 +1,7 @@
 const express = require('express');
 const { body, param, validationResult } = require('express-validator');
 const router = express.Router();
+const db = require('../db'); 
 
 // Hardcoded events array (Should be replaced with database)
 let events = [
@@ -73,18 +74,48 @@ router.post(
       return res.status(400).json({ message: 'The event date cannot be in the past.' });
     }
 
-    const newEvent = {
-      id: events.length + 1, 
-      name: req.body.name,
-      description: req.body.description,
-      location: req.body.location,
-      skills: req.body.skills,
-      urgency: req.body.urgency,
-      date: req.body.date,
-    };
+    // const newEvent = {
+    //   id: events.length + 1, 
+    //   name: req.body.name,
+    //   description: req.body.description,
+    //   location: req.body.location,
+    //   skills: req.body.skills,
+    //   urgency: req.body.urgency,
+    //   date: req.body.date,
+    // };
     
-    events.push(newEvent);
-    res.status(201).json(newEvent); 
+    // events.push(newEvent);
+
+    // Prepare data for insertion
+    const { name, description, location, skills, urgency } = req.body;
+    const skillsString = skills.join(', '); // Convert skills array to a string
+
+    // SQL query to insert a new event
+    const insertQuery = `
+      INSERT INTO EventDetails (event_name, description, location, required_skills, urgency, event_date)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+
+    // Insert the new event into the database
+    db.run(insertQuery, [name, description, location, skillsString, urgency, eventDate.toISOString()], function(err) {
+      if (err) {
+        console.error('Error inserting new event:', err.message);
+        return res.status(500).json({ error: 'Internal Server Error' });
+      }
+
+      // Respond with the newly created event
+      const newEvent = {
+        id: this.lastID, // Get the ID of the newly inserted row
+        name,
+        description,
+        location,
+        skills,
+        urgency,
+        date: eventDate.toISOString().split('T')[0], // Format date as YYYY-MM-DD
+      };
+
+      res.status(201).json(newEvent);
+    });
   }
 );
 
@@ -102,14 +133,30 @@ router.delete(
     }
 
     const id = parseInt(req.params.id);
-    const eventIndex = events.findIndex(event => event.id === id);
+    // const eventIndex = events.findIndex(event => event.id === id);
 
-    if (eventIndex === -1) {
-      return res.status(400).json({ message: 'Event not found' });
-    }
+    // if (eventIndex === -1) {
+    //   return res.status(400).json({ message: 'Event not found' });
+    // }
 
-    events.splice(eventIndex, 1); 
-    res.json({ message: 'Event removed' }); 
+    // events.splice(eventIndex, 1); 
+
+    // SQL query to delete the event by id
+    const deleteQuery = `DELETE FROM EventDetails WHERE id = ?`;
+
+    db.run(deleteQuery, [id], function (err) {
+      if (err) {
+        console.error('Error deleting event:', err.message);
+        return res.status(500).json({ error: 'Internal Server Error' });
+      }
+
+      if (this.changes === 0) {
+        return res.status(400).json({ message: 'Event not found' });
+      }
+
+      res.json({ message: 'Event removed' }); 
+
+    });
   }
 );
 
@@ -139,9 +186,34 @@ router.put(
   }
 );
 
+// // Get route to return all events
+// router.get('/', (req, res) => {
+//   res.status(200).json(events);
+// });
+
 // Get route to return all events
 router.get('/', (req, res) => {
-  res.status(200).json(events);
+  const query = `SELECT id, event_name AS name, event_date AS date, description, location, urgency, required_skills AS skills FROM EventDetails`;
+
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      console.error('Error retrieving events:', err.message);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+    
+    // Map the rows to format required by your application
+    const events = rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      date: new Date(row.date).toISOString().split('T')[0], 
+      description: row.description,
+      location: row.location,
+      urgency: row.urgency,
+      skills: row.skills.split(', ') // Convert string back to array
+    }));
+
+    res.status(200).json(events);
+  });
 });
 
 // PUT route to update an event by id
@@ -174,13 +246,6 @@ router.put(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const id = parseInt(req.params.id);
-    const eventIndex = events.findIndex(event => event.id === id);
-
-    if (eventIndex === -1) {
-      return res.status(400).json({ message: 'Event not found' });
-    }
-
     const eventDate = new Date(req.body.date);
     const today = new Date();
 
@@ -188,13 +253,47 @@ router.put(
       return res.status(400).json({ message: 'The event date cannot be in the past.' });
     }
 
-    const updatedEvent = {
-      ...events[eventIndex],
-      ...req.body, 
-    };
+    // const updatedEvent = {
+    //   ...events[eventIndex],
+    //   ...req.body, 
+    // };
 
-    events[eventIndex] = updatedEvent;
-    res.status(200).json(updatedEvent); 
+    // events[eventIndex] = updatedEvent;
+
+    const eventId = parseInt(req.params.id);
+    const { name, description, location, skills, urgency } = req.body;
+    const skillsString = skills.join(', '); 
+
+    // SQL query to update an event by ID
+    const updateQuery = `
+      UPDATE EventDetails5
+      SET event_name = ?, description = ?, location = ?, required_skills = ?, urgency = ?, event_date = ?
+      WHERE id = ?
+    `;
+
+    // Update the event in the database
+    db.run(updateQuery, [name, description, location, skillsString, urgency, eventDate.toISOString(), eventId], function(err) {
+      if (err) {
+        console.error('Error updating event:', err.message);
+        return res.status(500).json({ error: 'Internal Server Error' });
+      }
+
+      if (this.changes === 0) {
+        return res.status(404).json({ message: 'Event not found' });
+      }
+
+      const updatedEvent = {
+        id: eventId,
+        name,
+        description,
+        location,
+        skills, 
+        urgency,
+        date: eventDate.toISOString().split('T')[0], // Format date as YYYY-MM-DD
+      };
+
+      res.status(200).json(updatedEvent);
+    });
   }
 );
 
