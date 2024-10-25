@@ -1,6 +1,9 @@
+// TODO: Properly update database, reimplement autofill function, assign proper ID to users.
+
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const users = require('../users');
+const db = require('../db');
+const { promisify } = require('util');
 
 const router = express.Router();
 
@@ -48,23 +51,13 @@ router.post(
         body('availability')
             .isArray({ min: 1 }).withMessage('Availability must be an array with at least one date'),
     ],
-    (req, res) => {
+    async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
+            return res.status(400).json({errors: errors.array()});
         }
 
-        const { fullName, streetAddress, streetAddress2, city, state, postalCode, skills, preferences, availability } = req.body;
-
-        if (!req.session || !req.session.user || !req.session.user.email) {
-            return res.status(500).json({ message: 'User session or email are not valid' });
-        }
-
-        const userEmail = req.session.user.email;
-        const userIndex = users.findIndex(user => user.email === userEmail);
-
-        users[userIndex] = {
-            ...users[userIndex],
+        const {
             fullName,
             streetAddress,
             streetAddress2,
@@ -72,28 +65,86 @@ router.post(
             state,
             postalCode,
             skills,
-            preferences: preferences || [],
-            availability,
-        };
-        return res.status(200).json(users[userIndex]);
+            preferences,
+            availability
+        } = req.body;
 
+        if (!req.session || !req.session.user || !req.session.user.username) {
+            return res.status(500).json({ message: 'User session or email are not valid' });
+        }
+
+        const userEmail = req.session.user.username;
+        const userId = req.session.user.id;
+
+        try {
+            const userRow = await db.get('SELECT id FROM UserCredentials WHERE username = ?', [userEmail]);
+
+            if (!userRow) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            await db.run(
+                `INSERT INTO UserProfile (id, full_name, address, city, state, zipcode, skills, preferences,
+                                          availability)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO
+                UPDATE SET
+                    full_name = excluded.full_name,
+                    address = excluded.address,
+                    city = excluded.city,
+                    state = excluded.state,
+                    zipcode = excluded.zipcode,
+                    skills = excluded.skills,
+                    preferences = excluded.preferences,
+                    availability = excluded.availability`,
+                [
+                    userId,
+                    fullName,
+                    `${streetAddress} ${streetAddress2 || ''}`,
+                    city,
+                    state,
+                    postalCode,
+                    JSON.stringify(skills),
+                    preferences || '',
+                    JSON.stringify(availability),
+                ]
+            );
+
+            return res.status(200).json({ message: 'Profile updated successfully' });
+        } catch (error) {
+            console.error('Error updating profile:', error.message);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
     }
 );
 
-
-router.get('/', (req, res) => {
-    res.json(users);
+router.get('/', async (req, res) => {
+    try {
+        const rows = await promisify(db.all).bind(db)('SELECT * FROM UserProfile');
+        res.json(rows);
+    } catch (error) {
+        console.log('Error fetching users:', error.message);
+        res.status(500).json({ message: 'Internal server error' });
+    }
 });
 
-router.get('/:email', (req, res) => {
+router.get('/:email', async (req, res) => {
     const userEmail = req.params.email;
-    const profile = users.find(user => user.email === userEmail);
 
-    if (!profile) {
-        return res.status(404).json({ message: 'Profile not found' });
+    try {
+        const userRow = await db.get(
+            'SELECT * FROM UserProfile WHERE id = (SELECT id FROM UserCredentials WHERE username = ?)',
+            [userEmail]
+        );
+
+        if (!userRow) {
+            return res.status(404).json({ message: 'Profile not found' });
+        }
+
+        res.json(userRow);
+    } catch (error) {
+        console.error('Error fetching user:', error.message);
+        res.status(500).json({ message: 'Internal server error' });
     }
-
-    res.json(profile);
 });
 
 module.exports = router;
