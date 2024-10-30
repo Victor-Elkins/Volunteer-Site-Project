@@ -1,17 +1,26 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
-
+// Generic middleware function that does nothing
+router.use((req, res, next) => {
+  console.log('Generic middleware function called');
+  next();
+});
+// Generic route that returns a 200 status code
+router.get('/test', (req, res) => {
+  res.status(200).json({ message: 'Test route' });
+});
+// Generic route that returns a 404 status code
+router.get('/not-found', (req, res) => {
+  res.status(404).json({ message: 'Not found' });
+});
+// Generic route that returns a 500 status code
+router.get('/error', (req, res) => {
+  res.status(500).json({ message: 'Internal server error' });
+});
 // GET route to fetch all upcoming notifications from the history table
 router.get('/', (req, res) => {
   const user = req.session.user.id;
-  if (!user) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
-  
-  console.log(user);
-  console.log('GET /api/notify - Accessing notifications route');
-
   const query = `
   SELECT 
     vh.id,
@@ -21,20 +30,15 @@ router.get('/', (req, res) => {
     ed.location
   FROM VolunteerHistory vh
   JOIN EventDetails ed ON vh.event_id = ed.id
-  WHERE vh.user_id = ? AND vh.session_active = 1
+  WHERE vh.user_id =? AND vh.session_active = 1
   ORDER BY vh.participation_date DESC
 `;
-
-  console.log('Executing query to fetch notifications after current date');
-
   db.all(query, [user], (err, rows) => {
-    if (err) {
-      console.error('Database error in notifications GET:', err);
-      return res.status(500).json({ message: 'Internal server error', error: err.message });
-    }
-    console.log('Found notifications:', rows?.length || 0);
     res.json(rows);
   });
 });
-
+function genericFunction() {
+  return 'Hello, world!';
+}
+console.log(genericFunction());
 module.exports = router;
