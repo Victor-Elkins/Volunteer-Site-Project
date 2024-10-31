@@ -1,4 +1,4 @@
-// TODO: Properly update database, reimplement autofill function, assign proper ID to users.
+// TODO: Fix test cases
 
 const express = require('express');
 const { body, validationResult } = require('express-validator');
@@ -11,17 +11,17 @@ const router = express.Router();
 router.post(
     '/',
     [
-        body('fullName')
+        body('full_name')
             .isLength({ max: 50 }).withMessage('Full Name must be at most 50 characters')
             .notEmpty().withMessage('Full Name is required')
             .isString().withMessage('Full Name must be a string'),
 
-        body('streetAddress')
+        body('address_1')
             .isLength({ max: 100 }).withMessage('Address 1 must be at most 100 characters')
             .notEmpty().withMessage('Street Address is required')
             .isString().withMessage('Street Address must be a string'),
 
-        body('streetAddress2')
+        body('address_2')
             .optional()
             .isLength({ max: 100 }).withMessage('Street Address 2 must be at most 100 characters')
             .isString().withMessage('Street Address 2 must be a string'),
@@ -36,7 +36,7 @@ router.post(
             .notEmpty().withMessage('State is required')
             .isString().withMessage('State must be a string'),
 
-        body('postalCode')
+        body('zipcode')
             .isLength({ min: 5, max: 9 }).withMessage('Zip Code must be between 5 and 9 characters')
             .notEmpty().withMessage('Zip Code is required')
             .isString().withMessage('Zip Code must be a string'),
@@ -58,18 +58,19 @@ router.post(
         }
 
         const {
-            fullName,
-            streetAddress,
-            streetAddress2,
+            full_name,
+            address_1,
+            address_2,
             city,
             state,
-            postalCode,
+            zipcode,
             skills,
             preferences,
             availability
         } = req.body;
 
         if (!req.session || !req.session.user || !req.session.user.username) {
+            console.error("User session or email are not valid.");
             return res.status(500).json({ message: 'User session or email are not valid' });
         }
 
@@ -84,12 +85,13 @@ router.post(
             }
 
             await db.run(
-                `INSERT INTO UserProfile (id, full_name, address, city, state, zipcode, skills, preferences,
+                `INSERT INTO UserProfile (id, full_name, address_1, address_2, city, state, zipcode, skills, preferences,
                                           availability)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO
                 UPDATE SET
                     full_name = excluded.full_name,
-                    address = excluded.address,
+                    address_1 = excluded.address_1,
+                    address_2 = excluded.address_2,
                     city = excluded.city,
                     state = excluded.state,
                     zipcode = excluded.zipcode,
@@ -98,11 +100,12 @@ router.post(
                     availability = excluded.availability`,
                 [
                     userId,
-                    fullName,
-                    `${streetAddress} ${streetAddress2 || ''}`,
+                    full_name,
+                    address_1,
+                    address_2,
                     city,
                     state,
-                    postalCode,
+                    zipcode,
                     JSON.stringify(skills),
                     preferences || '',
                     JSON.stringify(availability),
@@ -117,6 +120,7 @@ router.post(
     }
 );
 
+// Get all user info.
 router.get('/', async (req, res) => {
     try {
         const rows = await promisify(db.all).bind(db)('SELECT * FROM UserProfile');
@@ -127,24 +131,29 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/:email', async (req, res) => {
-    const userEmail = req.params.email;
+// Get specific user's info.
+router.get('/myProfile', async (req, res) => {
+    const userId = req.session.user.id;
 
     try {
-        const userRow = await db.get(
-            'SELECT * FROM UserProfile WHERE id = (SELECT id FROM UserCredentials WHERE username = ?)',
-            [userEmail]
-        );
-
-        if (!userRow) {
-            return res.status(404).json({ message: 'Profile not found' });
-        }
-
-        res.json(userRow);
+        const query = `SELECT * FROM UserProfile WHERE id = ?`;
+        db.get(query, [userId], (error, result) => {
+            if (error) {
+                console.error("Database error:", error.message);
+                return res.status(500).json({ message: "Database error." });
+            }
+            if (result) {
+                res.json(result);
+            } else {
+                res.status(404).json({ message: 'User not found' });
+                console.error("Could not find user.");
+            }
+        })
     } catch (error) {
-        console.error('Error fetching user:', error.message);
-        res.status(500).json({ message: 'Internal server error' });
+        console.error("Error fetching user profile:", error);
+        res.status(500).json({ message: "Server error." });
     }
 });
+
 
 module.exports = router;

@@ -8,12 +8,12 @@ import type { Skill } from '../Components/Dropdown';
 
 export default function ProfileEdit() {
     const [errors, setErrors] = useState<string[]>([]);
-    const [fullName, setFullName] = useState("");
-    const [streetAddress, setStreetAddress] = useState("");
-    const [streetAddress2, setStreetAddress2] = useState("");
+    const [full_name, setFullName] = useState("");
+    const [address_1, setStreetAddress] = useState("");
+    const [address_2, setStreetAddress2] = useState("");
     const [city, setCity] = useState("");
     const [selectedState, setSelectedState] = useState<State | null>(null);
-    const [postalCode, setPostalCode] = useState("");
+    const [zipcode, setPostalCode] = useState("");
     const [preferences, setPreferences] = useState("");
     const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
     const [availability, setAvailability] = useState<Date[]>([]);
@@ -21,8 +21,9 @@ export default function ProfileEdit() {
 
     useEffect(() => {
         const fetchUserProfile = async () => {
+
             try {
-                const response = await fetch("http://localhost:5000/api/userProfile", {
+                const response = await fetch(`http://localhost:5000/api/userProfile/myProfile`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
@@ -32,21 +33,27 @@ export default function ProfileEdit() {
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log(data);
-                    console.log(data[0].fullName)
 
-                    // Populate form fields with user profile data
-                    setFullName(data[0].fullName || "");
-                    setStreetAddress(data[0].streetAddress || "");
-                    setStreetAddress2(data[0].streetAddress2 || "");
-                    setCity(data[0].city || "");
-                    setSelectedState(data[0].state ? { name: data[0].state, code: data[0].state } : null);
-                    setPostalCode(data[0].postalCode || "");
-                    setPreferences(data[0].preferences || "");
-                    setSelectedSkills((data[0].skills && Array.isArray(data[0].skills)) ? data[0].skills.map((skill: string) => ({ name: skill })) : []);
-                    setAvailability(data[0].availability && Array.isArray(data[0].availability)
-                        ? data[0].availability.map((dateString: string | number | Date) => new Date(dateString))
-                        : []);
+                    if (data) {
+                        // Populate form fields with user profile data
+                        setFullName(data.full_name || "");
+                        setStreetAddress(data.address_1 || "");
+                        setStreetAddress2(data.address_2 || "");
+                        setCity(data.city || "");
+                        setSelectedState(data.state ? {name: data.state, code: data.state} : null);
+                        setPostalCode(data.zipcode || "");
+                        setPreferences(data.preferences || "");
+
+                        // Parse skills JSON string and set it
+                        const parsedSkills = JSON.parse(data.skills || "[]");
+                        setSelectedSkills(parsedSkills.map((skill: string) => ({name: skill})));
+
+                        // Parse availability JSON string and set it
+                        const parsedAvailability = JSON.parse(data.availability || "[]");
+                        setAvailability(parsedAvailability.map((dateString: string) => new Date(dateString)));
+                    } else {
+                        console.log("No user profile data found.");
+                    }
                 } else {
                     console.error("Failed to fetch user profile.");
                 }
@@ -54,7 +61,6 @@ export default function ProfileEdit() {
                 console.error("Error fetching user profile:", error);
             }
         };
-
         fetchUserProfile();
     }, []);
 
@@ -80,19 +86,19 @@ export default function ProfileEdit() {
             alert('Please select a date.');
             return;
         }
-        if (!fullName || !streetAddress || !city || !postalCode) {
+        if (!full_name || !address_1 || !city || !zipcode) {
             alert('Please fill out all required fields.');
             return;
         }
 
 
         const userProfileData = {
-            fullName,
-            streetAddress,
-            streetAddress2,
+            full_name,
+            address_1,
+            address_2,
             city,
             state: selectedState.code,
-            postalCode,
+            zipcode,
             skills: selectedSkills.map(skill => skill.name),
             preferences,
             availability,
@@ -168,7 +174,7 @@ export default function ProfileEdit() {
                                     type="text"
                                     autoComplete="name"
                                     maxLength={50}
-                                    value={fullName}
+                                    value={full_name}
                                     onChange={(e) => setFullName(e.target.value)}
                                     onKeyDown={handleKeyDown}
                                     required
@@ -188,7 +194,7 @@ export default function ProfileEdit() {
                                     type="text"
                                     autoComplete="street-address"
                                     maxLength={100}
-                                    value={streetAddress}
+                                    value={address_1}
                                     onChange={(e) => setStreetAddress(e.target.value)}
                                     onKeyDown={handleKeyDown}
                                     required
@@ -208,7 +214,7 @@ export default function ProfileEdit() {
                                     type="text"
                                     autoComplete="street-address-2"
                                     maxLength={100}
-                                    value={streetAddress2}
+                                    value={address_2}
                                     onChange={(e) => setStreetAddress2(e.target.value)}
                                     onKeyDown={handleKeyDown}
                                     className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
@@ -257,7 +263,7 @@ export default function ProfileEdit() {
                                     autoComplete="postal-code"
                                     maxLength={9}
                                     minLength={5}
-                                    value={postalCode}
+                                    value={zipcode}
                                     onChange={(e) => setPostalCode(e.target.value)}
                                     onKeyDown={handleKeyDown}
                                     required

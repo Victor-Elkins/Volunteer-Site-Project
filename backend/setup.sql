@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS UserCredentials (
 CREATE TABLE IF NOT EXISTS UserProfile (
     id INTEGER PRIMARY KEY,
     full_name TEXT NOT NULL,
-    address TEXT,
+    address_1 TEXT,
+    address_2 TEXT,
     city TEXT,
     state TEXT,
     zipcode TEXT,

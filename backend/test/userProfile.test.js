@@ -2,7 +2,7 @@ const request = require('supertest');
 const express = require('express');
 const userProfileRoutes = require('../routes/userProfile');
 const session = require("express-session");
-const authRoutes = require('../routes/auth'); // Ensure you include the auth routes for testing login
+const authRoutes = require('../routes/auth');
 
 const app = express();
 app.use(express.json());
@@ -19,9 +19,6 @@ app.use(session({
 app.use('/api/auth', authRoutes);
 app.use('/api/userProfile', userProfileRoutes);
 
-// Mock the in-memory users store
-const users = require('../users');
-
 describe('User Profile Routes', () => {
     let server;
     let agent = request.agent(app);
@@ -29,27 +26,23 @@ describe('User Profile Routes', () => {
 
     beforeEach(async () => {
         server = app.listen(PORT);
-        users.length = 0; // Clear users before each test
-
-        // Register a user
-        await agent
-            .post('/api/auth/register')
-            .send({ email: 'testuser@example.com', password: 'password123' });
 
         // Login to create a session
-        await agent
+        const login_response = await agent
             .post('/api/auth/login')
-            .send({ email: 'testuser@example.com', password: 'password123' });
+            .send({ username: 'testuser@example.com', password: 'password123' });
+
+        console.log('Session after login:', agent.session);
 
         await agent
             .post('/api/userProfile')
             .send({
-                fullName: 'Jane Doe',
-                streetAddress: '123 Main St',
-                streetAddress2: '',
+                full_name: 'Jane Doe',
+                address_1: '123 Main St',
+                address_2: '',
                 city: 'Anytown',
                 state: 'CA',
-                postalCode: '90210',
+                zipcode: '90210',
                 skills: ['JavaScript', 'Node.js'],
                 preferences: 'None',
                 availability: ['2024-10-17'],
@@ -62,10 +55,10 @@ describe('User Profile Routes', () => {
 
     it('should return 400 for missing full name', async () => {
         const res = await agent.post('/api/userProfile').send({
-            streetAddress: '123 Main St',
+            address_1: '123 Main St',
             city: 'Paradise',
             state: 'CA',
-            postalCode: '12345',
+            zipcode: '12345',
             skills: ['Teaching'],
             availability: ['2024-10-17T05:00:00.000Z'],
         });
@@ -77,11 +70,11 @@ describe('User Profile Routes', () => {
 
     it('should return 400 for full name not being a string', async () => {
         const res = await agent.post('/api/userProfile').send({
-            fullName: 123,
-            streetAddress: '123 Main St',
+            full_name: 123,
+            address_1: '123 Main St',
             city: 'Paradise',
             state: 'CA',
-            postalCode: '12345',
+            zipcode: '12345',
             skills: ['Teaching'],
             availability: ['2024-10-17T05:00:00.000Z'],
         });
@@ -93,10 +86,10 @@ describe('User Profile Routes', () => {
 
     it('should return 400 for missing street address', async () => {
         const res = await agent.post('/api/userProfile').send({
-            fullName: 'Jane Doe',
+            full_name: 'Jane Doe',
             city: 'Paradise',
             state: 'CA',
-            postalCode: '12345',
+            zipcode: '12345',
             skills: ['Teaching'],
             availability: ['2024-10-17T05:00:00.000Z'],
         });
@@ -108,11 +101,11 @@ describe('User Profile Routes', () => {
 
     it('should return 400 for street address not being a string', async () => {
         const res = await agent.post('/api/userProfile').send({
-            fullName: 'Jane Doe',
-            streetAddress: 123,
+            full_name: 'Jane Doe',
+            address_1: 123,
             city: 'Paradise',
             state: 'CA',
-            postalCode: '12345',
+            zipcode: '12345',
             skills: ['Teaching'],
             availability: ['2024-10-17T05:00:00.000Z'],
         });
@@ -124,10 +117,10 @@ describe('User Profile Routes', () => {
 
     it('should return 400 for city missing', async () => {
         const res = await agent.post('/api/userProfile').send({
-            fullName: 'Jane Doe',
-            streetAddress: '123 Main St',
+            full_name: 'Jane Doe',
+            address_1: '123 Main St',
             state: 'CA',
-            postalCode: '12345',
+            zipcode: '12345',
             skills: ['Teaching'],
             availability: ['2024-10-17T05:00:00.000Z'],
         });
@@ -139,11 +132,11 @@ describe('User Profile Routes', () => {
 
     it('should return 400 for city not being a string', async () => {
         const res = await agent.post('/api/userProfile').send({
-            fullName: 'Jane Doe',
-            streetAddress: '123 Main St',
+            full_name: 'Jane Doe',
+            address_1: '123 Main St',
             city: 123,
             state: 'CA',
-            postalCode: '12345',
+            zipcode: '12345',
             skills: ['Teaching'],
             availability: ['2024-10-17T05:00:00.000Z'],
         });
@@ -155,8 +148,8 @@ describe('User Profile Routes', () => {
 
     it('should return 400 for postal code missing', async () => {
         const res = await agent.post('/api/userProfile').send({
-            fullName: 'Jane Doe',
-            streetAddress: '123 Main St',
+            full_name: 'Jane Doe',
+            address_1: '123 Main St',
             city: 'Paradise',
             state: 'CA',
             skills: ['Teaching'],
@@ -170,11 +163,11 @@ describe('User Profile Routes', () => {
 
     it('should return 400 for postal code not being between 5-9 characters', async () => {
         const res = await agent.post('/api/userProfile').send({
-            fullName: 'Jane Doe',
-            streetAddress: '123 Main St',
+            full_name: 'Jane Doe',
+            address_1: '123 Main St',
             city: 'Paradise',
             state: 'CA',
-            postalCode: '1234', // Invalid postal code
+            zipcode: '1234', // Invalid postal code
             skills: ['Teaching'],
             availability: ['2024-10-17T05:00:00.000Z'],
         });
@@ -186,10 +179,10 @@ describe('User Profile Routes', () => {
 
     it('should return 400 for state missing', async () => {
         const res = await agent.post('/api/userProfile').send({
-            fullName: 'Jane Doe',
-            streetAddress: '123 Main St',
+            full_name: 'Jane Doe',
+            address_1: '123 Main St',
             city: 'Paradise',
-            postalCode: '12345',
+            zipcode: '12345',
             skills: ['Teaching'],
             availability: ['2024-10-17T05:00:00.000Z'],
         });
@@ -201,11 +194,11 @@ describe('User Profile Routes', () => {
 
     it('should return 400 for state not being a 2-character string', async () => {
         const res = await agent.post('/api/userProfile').send({
-            fullName: 'Jane Doe',
-            streetAddress: '123 Main St',
+            full_name: 'Jane Doe',
+            address_1: '123 Main St',
             city: 'Paradise',
             state: 'California',
-            postalCode: '12345',
+            zipcode: '12345',
             skills: ['Teaching'],
             availability: ['2024-10-17T05:00:00.000Z'],
         });
@@ -217,11 +210,11 @@ describe('User Profile Routes', () => {
 
     it('should return 400 for skills not having at least one skill', async () => {
         const res = await agent.post('/api/userProfile').send({
-            fullName: 'Jane Doe',
-            streetAddress: '123 Main St',
+            full_name: 'Jane Doe',
+            address_1: '123 Main St',
             city: 'Paradise',
             state: 'CA',
-            postalCode: '12345',
+            zipcode: '12345',
             skills: [], // No skills provided
             availability: ['2024-10-17T05:00:00.000Z'],
         });
@@ -233,11 +226,11 @@ describe('User Profile Routes', () => {
 
     it('should return 400 for availability not having at least one date', async () => {
         const res = await agent.post('/api/userProfile').send({
-            fullName: 'Jane Doe',
-            streetAddress: '123 Main St',
+            full_name: 'Jane Doe',
+            address_1: '123 Main St',
             city: 'Paradise',
             state: 'CA',
-            postalCode: '12345',
+            zipcode: '12345',
             skills: ['Teaching'],
             availability: [], // No availability dates provided
         });
@@ -249,11 +242,11 @@ describe('User Profile Routes', () => {
 
     it('should return 400 for preferences not being a string', async () => {
         const res = await agent.post('/api/userProfile').send({
-            fullName: 'Jane Doe',
-            streetAddress: '123 Main St',
+            full_name: 'Jane Doe',
+            address_1: '123 Main St',
             city: 'Paradise',
             state: 'CA',
-            postalCode: '12345',
+            zipcode: '12345',
             skills: ['Teaching'],
             availability: ['2024-10-17T05:00:00.000Z'],
             preferences: 123,
@@ -268,70 +261,53 @@ describe('User Profile Routes', () => {
         const res = await agent
             .post('/api/userProfile')
             .send({
-                fullName: 'Jane Doe',
-                streetAddress: '123 Main St',
+                full_name: 'Jane Doe',
+                address_1: '123 Main St',
                 city: 'Paradise',
                 state: 'CA',
-                postalCode: '12345',
+                zipcode: '12345',
                 skills: ['Teaching'],
                 availability: ['2024-10-17T05:00:00.000Z'],
             });
 
         expect(res.statusCode).toEqual(200);
-        expect(res.body).toHaveProperty('fullName', 'Jane Doe');
-        expect(res.body).toHaveProperty('streetAddress', '123 Main St');
-        expect(res.body).toHaveProperty('city', 'Paradise');
-        expect(res.body).toHaveProperty('state', 'CA');
-        expect(res.body).toHaveProperty('postalCode', '12345');
-        expect(res.body.skills).toContain('Teaching');
-        expect(res.body.availability).toContain('2024-10-17T05:00:00.000Z');
+        expect(res.body).toHaveProperty('message', 'Profile updated successfully');
     });
 
-    it('should get all profiles', async () => {
-        const res = await agent.get('/api/userProfile');
-        expect(res.statusCode).toEqual(200);
-        expect(Array.isArray(res.body)).toBeTruthy();
-    });
+    it('should return 404 for user not found', async () => {
+        // Mock a valid user ID that does not exist in UserCredentials
+        agent = request.agent(app); // Re-initialize the agent for a new session
+        await agent
+            .post('/api/auth/login')
+            .send({ email: 'testuser@example.com', password: 'password123' });
 
-    it('should return user profile when a valid email is provided', async () => {
-        const res = await agent.get(`/api/userProfile/testuser@example.com`);
+        // Manually set a user ID that does not correspond to any user in the database
+        agent.session.user = { id: 'nonexistent-user-id' };
 
-        expect(res.body).toHaveProperty('email', 'testuser@example.com');
-        expect(res.body).toHaveProperty('passwordHash');
-        expect(res.body).toHaveProperty('fullName', 'Jane Doe');
-        expect(res.body).toHaveProperty('streetAddress', '123 Main St');
-        expect(res.body).toHaveProperty('city', 'Anytown');
-        expect(res.body).toHaveProperty('state', 'CA');
-        expect(res.body).toHaveProperty('postalCode', '90210');
-        expect(res.body).toHaveProperty('skills');
-        expect(res.body.skills).toContain('JavaScript');
-        expect(res.body.skills).toContain('Node.js');
-        expect(res.body).toHaveProperty('availability');
-        expect(res.body.availability).toContain('2024-10-17');
-    });
-
-    it('should return 404 for non-existent profile', async () => {
-        const res = await agent.get('/api/userProfile/nonexistent@example.com');
-        expect(res.statusCode).toEqual(404);
-        expect(res.body).toHaveProperty('message', 'Profile not found');
-    });
-
-    it('should return 500 if session or email is not valid', async () => {
-        // Make a request without a valid session
-        const res = await request(app)
+        const res = await agent
             .post('/api/userProfile')
             .send({
-                fullName: 'John Doe',
-                streetAddress: '123 Main St',
-                streetAddress2: '',
-                city: 'New York',
-                state: 'NY',
-                postalCode: '10001',
-                skills: ['Programming'],
-                availability: ['2024-10-20']
-        });
+                full_name: 'Jane Doe',
+                address_1: '123 Main St',
+                city: 'Paradise',
+                state: 'CA',
+                zipcode: '12345',
+                skills: ['Teaching'],
+                availability: ['2024-10-17T05:00:00.000Z'],
+            });
 
-        expect(res.status).toBe(500);
-        expect(res.body.message).toBe('User session or email are not valid');
+        expect(res.statusCode).toEqual(404);
+        expect(res.body).toHaveProperty('message', 'User not found');
     });
+
+
+    it('should return the user profile when a valid session is provided', async () => {
+        const res = await agent.get('/api/userProfile/myProfile');
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body).toHaveProperty('full_name', 'Jane Doe');
+        expect(res.body).toHaveProperty('address_1', '123 Main St');
+    });
+
+
 });

@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../db');
 // Generic middleware function that does nothing
 router.use((req, res, next) => {
-  console.log('Generic middleware function called');
+  //console.log('Generic middleware function called');
   next();
 });
 // Generic route that returns a 200 status code
