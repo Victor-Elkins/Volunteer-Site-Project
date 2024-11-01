@@ -1,5 +1,3 @@
-// TODO: Fix test cases
-
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const db = require('../db');
@@ -71,19 +69,16 @@ router.post(
 
         if (!req.session || !req.session.user || !req.session.user.username) {
             console.error("User session or email are not valid.");
-            return res.status(500).json({ message: 'User session or email are not valid' });
+            return res.status(401).json({ message: 'Unauthorized: User session is invalid or expired' });
         }
 
         const userEmail = req.session.user.username;
         const userId = req.session.user.id;
 
+        const userRow = await db.get('SELECT id FROM UserCredentials WHERE username = ?', [userEmail]);
+
         try {
-            const userRow = await db.get('SELECT id FROM UserCredentials WHERE username = ?', [userEmail]);
-
-            if (!userRow) {
-                return res.status(404).json({ message: 'User not found' });
-            }
-
+            // Insert or update user profile
             await db.run(
                 `INSERT INTO UserProfile (id, full_name, address_1, address_2, city, state, zipcode, skills, preferences,
                                           availability)
@@ -115,7 +110,7 @@ router.post(
             return res.status(200).json({ message: 'Profile updated successfully' });
         } catch (error) {
             console.error('Error updating profile:', error.message);
-            return res.status(500).json({ message: 'Internal server error' });
+            return res.status(500).json({ message: 'Internal server error: Failed to update user profile' });
         }
     }
 );
@@ -126,34 +121,47 @@ router.get('/', async (req, res) => {
         const rows = await promisify(db.all).bind(db)('SELECT * FROM UserProfile');
         res.json(rows);
     } catch (error) {
-        console.log('Error fetching users:', error.message);
-        res.status(500).json({ message: 'Internal server error' });
+        console.error('Error fetching all users:', error.message);
+        res.status(500).json({ message: 'Internal server error: Failed to fetch user profiles' });
     }
 });
 
 // Get specific user's info.
 router.get('/myProfile', async (req, res) => {
-    const userId = req.session.user.id;
+    const username = req.session?.user?.username;
+
+    if (!username) {
+        console.error("User session or username is not valid.");
+        return res.status(401).json({ message: 'Unauthorized: User session or username is invalid' });
+    }
 
     try {
-        const query = `SELECT * FROM UserProfile WHERE id = ?`;
-        db.get(query, [userId], (error, result) => {
-            if (error) {
-                console.error("Database error:", error.message);
-                return res.status(500).json({ message: "Database error." });
+        // Find the user ID from the UserCredentials table
+        const query = 'SELECT id FROM UserCredentials WHERE username = ?';
+        db.get(query, [username], (err, userRow) => {
+            if (err) {
+                console.error('Database error:', err.message);
+                return res.status(500).json({ message: 'Internal server error: Failed to query UserCredentials' });
             }
-            if (result) {
+
+            // Fetch the user profile using the found user ID
+            const profileQuery = `SELECT * FROM UserProfile WHERE id = ?`;
+            db.get(profileQuery, [userRow.id], (error, result) => {
+                if (error) {
+                    console.error('Database error:', error.message);
+                    return res.status(500).json({ message: 'Internal server error: Failed to query UserProfile' });
+                }
+                if (!result) {
+                    return res.status(404).json({ message: 'User profile not found' });
+                }
+
                 res.json(result);
-            } else {
-                res.status(404).json({ message: 'User not found' });
-                console.error("Could not find user.");
-            }
-        })
+            });
+        });
     } catch (error) {
         console.error("Error fetching user profile:", error);
-        res.status(500).json({ message: "Server error." });
+        res.status(500).json({ message: "Internal server error: Unexpected error occurred while fetching user profile" });
     }
 });
-
 
 module.exports = router;

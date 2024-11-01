@@ -2,7 +2,8 @@ const request = require('supertest');
 const express = require('express');
 const userProfileRoutes = require('../routes/userProfile');
 const session = require("express-session");
-const authRoutes = require('../routes/auth');
+const authRoutes = require('../routes/auth'); // Ensure you include the auth routes for testing login
+const db = require('../db');
 
 const app = express();
 app.use(express.json());
@@ -27,12 +28,13 @@ describe('User Profile Routes', () => {
     beforeEach(async () => {
         server = app.listen(PORT);
 
-        // Login to create a session
-        const login_response = await agent
-            .post('/api/auth/login')
+        await agent
+            .post('/api/auth/register')
             .send({ username: 'testuser@example.com', password: 'password123' });
 
-        console.log('Session after login:', agent.session);
+        await agent
+            .post('/api/auth/login')
+            .send({ username: 'testuser@example.com', password: 'password123' });
 
         await agent
             .post('/api/userProfile')
@@ -275,33 +277,22 @@ describe('User Profile Routes', () => {
     });
 
     it('should return 404 for user not found', async () => {
-        // Mock a valid user ID that does not exist in UserCredentials
-        agent = request.agent(app); // Re-initialize the agent for a new session
+        await agent.post('/api/auth/logout')
+
+        await agent
+            .post('/api/auth/register')
+            .send({ username: 'testuser2@example.com', password:  'password123'});
         await agent
             .post('/api/auth/login')
-            .send({ email: 'testuser@example.com', password: 'password123' });
+            .send({ username: 'testuser2@example.com', password: 'password123' });
 
-        // Manually set a user ID that does not correspond to any user in the database
-        agent.session.user = { id: 'nonexistent-user-id' };
-
-        const res = await agent
-            .post('/api/userProfile')
-            .send({
-                full_name: 'Jane Doe',
-                address_1: '123 Main St',
-                city: 'Paradise',
-                state: 'CA',
-                zipcode: '12345',
-                skills: ['Teaching'],
-                availability: ['2024-10-17T05:00:00.000Z'],
-            });
-
+        const res = await agent.get('/api/userProfile/myProfile')
         expect(res.statusCode).toEqual(404);
-        expect(res.body).toHaveProperty('message', 'User not found');
+        expect(res.body).toHaveProperty('message', 'User profile not found');
     });
 
-
     it('should return the user profile when a valid session is provided', async () => {
+        // Attempt get with default profile.
         const res = await agent.get('/api/userProfile/myProfile');
 
         expect(res.statusCode).toEqual(200);
@@ -309,5 +300,74 @@ describe('User Profile Routes', () => {
         expect(res.body).toHaveProperty('address_1', '123 Main St');
     });
 
+    it('should return 401 for invalid session while attempting to post user info', async () => {
+        await agent.post('/api/auth/logout');
+
+        // Attempt to POST to user profile without a valid session
+        const res = await agent.post('/api/userProfile').send({
+            full_name: 'John Doe',
+            address_1: '123 Main St',
+            city: 'Springfield',
+            state: 'IL',
+            zipcode: '62701',
+            skills: ['Writing'],
+            availability: ['2024-11-01T05:00:00.000Z'],
+        });
+
+        expect(res.statusCode).toEqual(401);
+        expect(res.body).toHaveProperty('message', 'Unauthorized: User session is invalid or expired');
+    });
+
+    it('should return 401 for invalid session while attempting to get user info', async () => {
+        await agent.post('/api/auth/logout');
+
+        // Attempt to GET user profile without a valid session
+        const res = await agent.get('/api/userProfile/myProfile');
+
+        expect(res.statusCode).toEqual(401);
+        expect(res.body).toHaveProperty('message', 'Unauthorized: User session or username is invalid');
+    });
+
+    test('should return 500 for internal server error while updating profile', async() => {
+        jest.spyOn(db, 'run').mockImplementation((query, params, callback) => {
+            callback(new Error('Database error'));
+        });
+
+        const response = await agent.post('/api/userProfile').send( {
+            full_name: 'Jane Doe',
+            address_1: '123 Main St',
+            city: 'Anytown',
+            state: 'CA',
+            zipcode: '90210',
+            skills: ['JavaScript'],
+            preferences: 'None',
+            availability: ['2024-10-17'],
+        });
+
+        expect(response.status).toBe(500);
+        expect(response.body.message).toBe('Internal server error: Failed to update user profile');
+    });
+
+    test('should return 500 for internal server error while fetching all users', async () => {
+        jest.spyOn(db, 'all').mockImplementation((query, callback) => {
+            callback(new Error('Database error'));
+        });
+
+        const response = await agent.get('/api/userProfile');
+
+        expect(response.status).toBe(500);
+        expect(response.body.message).toBe('Internal server error: Failed to fetch user profiles');
+    });
+
+    test('should return 500 for internal server error while attempting to query UserCredentails while grabbing single user', async () => {
+        jest.spyOn(db, 'get').mockImplementation((query, params, callback) => {
+            callback(new Error('Database error'));
+        });
+
+        const response = await agent.get('/api/userProfile/myProfile');
+
+        expect(response.status).toBe(500);
+        expect(response.body.message).toBe('Internal server error: Failed to query UserCredentials');
+    });
 
 });
