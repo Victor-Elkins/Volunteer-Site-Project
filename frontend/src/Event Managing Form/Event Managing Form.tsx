@@ -12,7 +12,7 @@ interface Event {
     date: string; 
     description: string;
     location: string;
-    urgency: 'Low' | 'Medium' | 'High' | 'Very High'; 
+    urgency: number; 
     skills: string[]; 
 }
 
@@ -22,7 +22,7 @@ interface formData {
     date: Date;
     description: string;
     location: string;
-    urgency: 'Low' | 'Medium' | 'High' | 'Very High'; 
+    urgency: number; 
     skills: string[]; 
 }
 
@@ -35,7 +35,7 @@ const EventForm = () => {
         date: new Date(),
         description: '',
         location: '',
-        urgency: 'Low',
+        urgency: 1,
         skills: []
     });
     
@@ -75,17 +75,6 @@ const EventForm = () => {
         } catch (error) {
             console.error('Error removing event:', error);
         }
-
-        try {
-            const response = await fetch(`http://localhost:5000/api/volunteer/remove-event/${event1.name}`, {
-                method: 'DELETE',
-            });
-            if (!response.ok) {
-                throw new Error('Failed to remove event from volunteers');
-            }
-        } catch (error) {
-            console.error('Error removing event:', error);
-        }
     };
 
     // Function to add an event
@@ -97,7 +86,7 @@ const EventForm = () => {
             date: new Date(),
             description: '',
             location: '',
-            urgency: 'Low',
+            urgency: 1,
             skills: []
         });
         setIsModalOpen(true); // Open modal
@@ -110,7 +99,7 @@ const EventForm = () => {
             setEditingEvent(id);
             setFormData({
                 name: eventToEdit.name,
-                date: new Date(eventToEdit.date), 
+                date: new Date(eventToEdit.date),
                 description: eventToEdit.description,
                 location: eventToEdit.location,
                 urgency: eventToEdit.urgency,
@@ -170,7 +159,7 @@ const EventForm = () => {
             return;
         }
 
-        const dateStr = date.toLocaleDateString();
+        const dateStr = date.toISOString();
 
         const eventPayload = {
             name,
@@ -215,6 +204,8 @@ const EventForm = () => {
                 }
 
                 const newEvent = await response.json();
+                newEvent.urgency = parseInt(newEvent.urgency); 
+                console.log(newEvent)
                 setEvents([...events, newEvent]);
             }
     
@@ -231,6 +222,18 @@ const EventForm = () => {
         setEditingEvent(null);
         setIsAdding(false);
     };
+
+  // Convert number into urgency
+  const getUrgencyLabel = (urgency: number) => {
+    switch (urgency) { 
+      case 1:return 'Low';
+      case 2:return 'Medium';
+      case 3:return 'High';
+      case 4:return 'Very High';
+      case 5:return 'Urgent';
+      default:return 'Unknown';
+    }
+  };
 
     return (
         <div className="p-4 max-w-lg mx-auto bg-white shadow-md rounded-lg">
@@ -259,9 +262,9 @@ const EventForm = () => {
                             </span>
                             <span className="flex justify-between items-center pl-4 pb-2 text-sm text-gray-500 text-left">
                                 <div className="pr-20">
-                                    <p>{event.date},  {event.location}</p>
+                                    <p>{event.date.toString().split('T')[0]},  {event.location}</p>
                                     <p>{event.description}</p>
-                                    <p><b>Urgency:</b> {event.urgency}</p>
+                                    <p><b>Urgency:</b> {getUrgencyLabel(event.urgency)}</p>
                                     <p><b>Skills Required:</b> {event.skills.join(', ')}</p>
                                 </div>
                                 <button className="absolute right-1 top-10 text-blue-500 hover:text-blue-700 text-base text-right" onClick={() => editEvent(event.id)}>
@@ -333,10 +336,11 @@ const EventForm = () => {
                                     onChange={handleChange}
                                     className="border rounded p-2 w-full"
                                 >
-                                    <option value="Low">Low</option>
-                                    <option value="Medium">Medium</option>
-                                    <option value="High">High</option>
-                                    <option value="Very High">Very High</option>
+                                    <option value={1}>Low</option>
+                                    <option value={2}>Medium</option>
+                                    <option value={3}>High</option>
+                                    <option value={4}>Very High</option>
+                                    <option value={5}>Urgent</option>
                                 </select>
                             </label>
                             <div className="flex justify-end space-x-2 mt-4">
