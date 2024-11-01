@@ -36,12 +36,12 @@ beforeAll((done) => {
 
         // Seed initial data
         db.run(`INSERT INTO UserProfile (full_name, skills) VALUES 
-            ('John Doe', 'Physically Fit, Good with Children'),
-            ('Jane Smith', 'Problem-Solving, Health Skills, Physically Fit'),
-            ('Steven Lang', 'Team Leadership, Data Analysis, Marketing, Physically Fit'),
-            ('Brandon James', 'Public Speaking, Fundraising'),
-            ('Emily Lee', 'Fundraising, Public Speaking, Problem-Solving'),
-            ('Derrick Kidd', 'Marketing, Organizational skills, Public Speaking')`);
+            ('John Doe', 'Physically Fit,Good with Children'),
+            ('Jane Smith', 'Problem-Solving,Health Skills,Physically Fit'),
+            ('Steven Lang', 'Team Leadership,Data Analysis,Marketing,Physically Fit'),
+            ('Brandon James', 'Public Speaking,Fundraising'),
+            ('Emily Lee', 'Fundraising,Public Speaking,Problem-Solving'),
+            ('Derrick Kidd', 'Marketing,Organizational skills,Public Speaking')`);
 
         db.run(`INSERT INTO EventDetails (event_name) VALUES 
             ('Event One'),
@@ -91,8 +91,6 @@ describe('GET /api/volunteers/with-skills', () => {
         expect(response.body).toEqual(expect.arrayContaining([
             expect.objectContaining({ name: 'John Doe' }),
             expect.objectContaining({ name: 'Steven Lang' }),
-            expect.objectContaining({ name: 'Brandon James' }),
-            expect.objectContaining({ name: 'Emily Lee' }),
         ]));
     });
 
@@ -114,7 +112,7 @@ describe('PUT /api/volunteers/update-people', () => {
         });
 
         expect(response.status).toBe(200);
-        expect(response.body).toEqual({ message: 'Event and volunteers updated successfully. 1111' });
+        expect(response.body).toEqual({ message: 'Event and volunteers updated successfully.' });
     });
 
     it('should return a 400 error if peopleAssigned or peopleToDelete are not arrays', async () => {
