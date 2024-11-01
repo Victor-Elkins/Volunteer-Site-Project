@@ -165,7 +165,7 @@ router.put(
       .isArray({ min: 1 }).withMessage('At least one skill must be selected'),
     body('urgency')
       .notEmpty().withMessage('Urgency is required')
-      .isString().withMessage('Urgency must be a string'),
+      .isNumeric().withMessage('Urgency must be a string'),
     body('date')
       .notEmpty().withMessage('Event date is required')
       .isString().withMessage('Event date must be a string'),

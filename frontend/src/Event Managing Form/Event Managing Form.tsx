@@ -186,6 +186,7 @@ const EventForm = () => {
                 }
 
                 const updatedEvent = await response.json();
+                updatedEvent.urgency = parseInt(updatedEvent.urgency); 
                 setEvents(events.map(event =>
                     event.id === editingEvent ? updatedEvent : event
                 ));
