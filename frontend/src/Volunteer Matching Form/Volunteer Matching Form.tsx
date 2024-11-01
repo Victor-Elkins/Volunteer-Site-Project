@@ -235,12 +235,19 @@ const VolunteerMatching = () => {
       <div className="flex">
         {/* Left Side - Event Information */}
         <div className="w-1/2 p-4">
-          <h2 className="text-lg font-semibold mb-4">Event Information</h2>
+          <h2 className="text-lg font-semibold mb-4">Current Event Information</h2>
           <ul className="space-y-2">
             {events.length === 0 ? (
               <li className="text-gray-500">No Events (Add Some)</li>
             ) : (
-              events.map(event => (
+              events.filter(event => {
+                const eventDate = new Date(event.date); // Assuming event.date is a valid date string
+                const today = new Date();
+                // Set the time of today to midnight for comparison
+                today.setHours(0, 0, 0, 0);
+                return eventDate >= today; // Include events that are today or in the future
+              }).
+              map(event => (
                 <li key={event.id} className="border-b">
                   <span className="flex justify-between items-center pl-2 pb-1 text-lg">
                     <span>{event.name}</span>
