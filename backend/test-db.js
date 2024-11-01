@@ -6,7 +6,7 @@ const addUserCredentials = () => {
   const insertUserSql = `INSERT INTO UserCredentials (username, password) VALUES (?, ?);`;
 
   for (let i = 0; i < 10; i++) {
-    const username = faker.internet.userName();
+    const username = faker.internet.username();
     const password = faker.internet.password();
     
     db.run(insertUserSql, [username, password], function(err) {
@@ -90,13 +90,16 @@ const addEventDetails = () => {
   });
 
   // Generate additional random events
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 10; i++) {
     const eventName = eventNames[Math.floor(Math.random() * eventNames.length)];
     const description = faker.lorem.sentence();
     const location = eventLocations[Math.floor(Math.random() * eventLocations.length)];
     const requiredSkills = skillsList.join(', ');
     const urgency = Math.floor(Math.random() * 5) + 1;
-    const eventDate = faker.date.future().toISOString();
+    const eventDate = faker.date.between({
+      from: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+      to: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+  }).toISOString();
 
     db.run(insertEventSql, [eventName, description, location, requiredSkills, urgency, eventDate], function(err) {
       if (err) {

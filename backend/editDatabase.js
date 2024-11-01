@@ -1,4 +1,4 @@
-const db = require('./db'); // Ensure this points to your database file
+const db = require('./db'); 
 
 async function updateEventsAndVolunteers() {
     // Array of skills to assign
@@ -14,7 +14,7 @@ async function updateEventsAndVolunteers() {
 
     // Fetch all events
     const getEventsQuery = 'SELECT * FROM EventDetails';
-    
+
     db.all(getEventsQuery, [], (err, events) => {
         if (err) {
             console.error("Error fetching events:", err);
@@ -61,7 +61,7 @@ async function updateEventsAndVolunteers() {
                     // Assign 1 to 3 events to each volunteer
                     const assignedEvents = events.sort(() => 0.5 - Math.random()).slice(0, Math.floor(Math.random() * 3) + 1);
                     assignedEvents.forEach(event => {
-                        const participationDate = event.event_date;
+                        const participationDate = event.event_date; // Use event's date
                         const participationStatus = new Date(participationDate) < new Date() ? 0 : 1; // Determine session_active
 
                         const insertVolunteerHistoryQuery = `
@@ -95,5 +95,4 @@ async function updateEventsAndVolunteers() {
     });
 }
 
-// Call the function to execute the updates
 updateEventsAndVolunteers();
