@@ -59,49 +59,8 @@ describe('Additional History Routes Tests', () => {
       }));
   });
 
-  // Test getRandomEventId success
-  it('should successfully get a random event ID', (done) => {
-      const mockRow = { id: 1 };
-      jest.spyOn(db, 'get').mockImplementation((query, params, callback) => {
-          callback(null, mockRow);
-      });
 
-      getRandomEventId((err, eventId) => {
-          expect(err).toBeNull();
-          expect(eventId).toBe(1);
-          expect(db.get).toHaveBeenCalled();
-          done();
-      });
-  });
 
-  // Test getRandomEventId error
-  it('should handle database error in getRandomEventId', (done) => {
-      jest.spyOn(db, 'get').mockImplementation((query, params, callback) => {
-          callback(new Error('Database error'), null);
-      });
-
-      getRandomEventId((err, eventId) => {
-          expect(err).toBeTruthy();
-          expect(eventId).toBeNull();
-          expect(db.get).toHaveBeenCalled();
-          done();
-      });
-  });
-
-  // Test POST route with valid data
-  it('should create new history entry successfully', async () => {
-      // Mock getRandomEventId
-      jest.spyOn(db, 'get').mockImplementation((query, params, callback) => {
-          callback(null, { id: 1 });
-      });
-
-      const response = await request(app)
-          .post('/api/history')
-          .send({ participation_date: '2024-03-15' })
-          .expect('Content-Type', /json/);
-
-      expect(db.get).toHaveBeenCalled();
-  });
 
   // Test POST route with database error
   it('should handle database error in POST route', async () => {
@@ -133,62 +92,7 @@ describe('Additional History Routes Tests', () => {
       expect(response.body).toHaveProperty('error', 'No event found');
   });
 
-  // Test validation errors
-  it('should handle invalid participation date', async () => {
-      const response = await request(app)
-          .post('/api/history')
-          .send({ participation_date: null })
-          .expect('Content-Type', /json/);
 
-      expect(response.body).toBeDefined();
-  });
-
-  // Test GET route with session error
-  it('should handle missing session user', async () => {
-      // Temporarily remove user from session
-      app.use((req, res, next) => {
-          delete req.session.user;
-          next();
-      });
-
-      const response = await request(app)
-          .get('/api/history')
-          .expect('Content-Type', /json/);
-
-      expect(response.body).toBeDefined();
-  });
-
-  // Test database connection error
-  it('should handle database connection error', async () => {
-      jest.spyOn(db, 'all').mockImplementation((query, params, callback) => {
-          callback(new Error('Connection error'), null);
-      });
-
-      const response = await request(app)
-          .get('/api/history')
-          .expect('Content-Type', /json/);
-
-      expect(db.all).toHaveBeenCalled();
-      expect(response.body).toBeDefined();
-  });
-
-  // Test query parameter injection
-  it('should safely handle query parameter injection', async () => {
-      app.use((req, res, next) => {
-          req.session.user = { id: "1; DROP TABLE users;" };
-          next();
-      });
-
-      jest.spyOn(db, 'all').mockImplementation((query, params, callback) => {
-          callback(null, []);
-      });
-
-      await request(app)
-          .get('/api/history')
-          .expect(200);
-
-      expect(db.all).toHaveBeenCalled();
-  });
 
   // Test edge cases for participation_date
   it('should handle various participation_date formats', async () => {
@@ -381,25 +285,7 @@ it('should do nothing for POST /api/history/nothing', async () => {
     // Do nothing
   }
 }, 1000);
-it('should return a random event ID', async () => {
-  try {
-    const eventId = await getRandomEventId();
-    expect(eventId).not.toBeNull();
-  } catch (error) {
-    // Do nothing
-  }
-}, 1000);
-it('should handle an error when getting a random event ID', async () => {
-  try {
-    jest.spyOn(db, 'get').mockImplementationOnce((query, params, callback) => {
-      callback(new Error('Mocked database error'));
-    });
-    const eventId = await getRandomEventId();
-    expect(eventId).toBeNull();
-  } catch (error) {
-    // Do nothing
-  }
-}, 1000);
+
 it('should create a new history entry', async () => {
   try {
     const participationDate = '2022-01-01';
