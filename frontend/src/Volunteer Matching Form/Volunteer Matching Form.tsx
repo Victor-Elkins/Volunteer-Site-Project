@@ -16,9 +16,9 @@ interface Event {
   date: string;
   description: string;
   location: string;
-  urgency: string;
+  urgency: number;
   skills: string[];
-  peopleAssigned: string[];
+  peopleAssigned: number[];
   isExpanded?: boolean; 
 }
 
@@ -29,10 +29,10 @@ const VolunteerMatching = () => {
   const [error, setError] = useState<string | null>(null); // Error state
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
-  const [selectedPeople, setSelectedPeople] = useState<string[]>([]);
+  const [selectedPeople, setSelectedPeople] = useState<number[]>([]); 
   const [matchingVolunteers, setMatchingVolunteers] = useState<Volunteer[]>([]); // Holds volunteers matching the required skills
   const [modalAction, setModalAction] = useState<'add' | 'delete' | null>(null);
-
+  
   // Fetch events and volunteers 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,11 +40,13 @@ const VolunteerMatching = () => {
         // Fetch events from backend
         const eventsResponse =  await fetch('http://localhost:5000/api/events');
         const eventsData: Event[] = await eventsResponse.json();
+        console.log(eventsData)
         setEvents(eventsData);
 
         // Fetch volunteers from backend
         const volunteersResponse = await fetch('http://localhost:5000/api/volunteer')
         const volunteersData: Volunteer[] = await volunteersResponse.json();
+        console.log(volunteersData)
         setPerson(volunteersData);
 
         setLoading(false); 
@@ -77,10 +79,11 @@ const VolunteerMatching = () => {
   
         const response = await fetch(`http://localhost:5000/api/volunteer/with-skills?skills=${skillsQuery}&eventName=${eventName}`);
         const matchingData: Volunteer[] = await response.json();
-  
+        console.log(matchingData)
         // Filter out volunteers who are already assigned to this event
-        const filteredVolunteers = matchingData.filter(volunteer => !event.peopleAssigned.includes(volunteer.name));
-  
+        const filteredVolunteers = matchingData.filter(volunteer => !event.peopleAssigned.includes(volunteer.id));
+        console.log(filteredVolunteers)
+
         setMatchingVolunteers(filteredVolunteers);
       } else {
         setMatchingVolunteers([]);
@@ -101,12 +104,11 @@ const VolunteerMatching = () => {
     setSelectedPeople([]);
   };
 
-  // Handle checkbox change for selecting people
-  const handleCheckboxChange = (person: string) => {
+  const handleCheckboxChange = (id: number) => {
     setSelectedPeople(prevSelectedPeople =>
-      prevSelectedPeople.includes(person)
-        ? prevSelectedPeople.filter(p => p !== person)
-        : [...prevSelectedPeople, person]
+        prevSelectedPeople.includes(id)
+            ? prevSelectedPeople.filter(p => p !== id)
+            : [...prevSelectedPeople, id]
     );
   };
 
@@ -114,8 +116,8 @@ const VolunteerMatching = () => {
   const handleDelete = async () => {
     if (currentEvent) {
       const peopleToDelete = selectedPeople;
-      const updatedPeople = currentEvent.peopleAssigned.filter(person => !peopleToDelete.includes(person));
-  
+      setSelectedPeople([]);
+      const updatedPeople = currentEvent.peopleAssigned.filter(id => !peopleToDelete.includes(id));
       setEvents(events.map(event =>
         event.id === currentEvent.id
           ? { ...event, peopleAssigned: updatedPeople }
@@ -123,7 +125,7 @@ const VolunteerMatching = () => {
       ));
   
       const updatedVolunteers = person.map(volunteer => {
-        if (peopleToDelete.includes(volunteer.name)) {
+        if (peopleToDelete.includes(volunteer.id)) {
           return {
             ...volunteer,
             EventAssigned: volunteer.EventAssigned.filter(eventName => eventName !== currentEvent.name), // Remove current event
@@ -134,7 +136,7 @@ const VolunteerMatching = () => {
   
       setPerson(updatedVolunteers);
   
-      await updateEventPeople(currentEvent.id, updatedPeople, currentEvent.name, peopleToDelete);
+      await updateEventPeople(currentEvent.id, [], currentEvent.date, peopleToDelete);
   
       closeModal();
     }
@@ -144,8 +146,10 @@ const VolunteerMatching = () => {
   // Handle add of selected people
   const handleAdd = async () => {
     if (currentEvent) {
-      const updatedPeople = [...new Set([...currentEvent.peopleAssigned, ...selectedPeople])]; // Ensure unique values
-  
+      let updatedPeople = [...new Set([...currentEvent.peopleAssigned, ...selectedPeople])];
+      
+      setSelectedPeople([]);
+
       setEvents(events.map(event =>
         event.id === currentEvent.id
           ? { ...event, peopleAssigned: updatedPeople }
@@ -153,7 +157,7 @@ const VolunteerMatching = () => {
       ));
 
       const updatedVolunteers = person.map(volunteer => {
-        if (selectedPeople.includes(volunteer.name)) {
+        if (selectedPeople.includes(volunteer.id)) {
           return {
             ...volunteer,
             EventAssigned: [...new Set([...volunteer.EventAssigned, currentEvent.name])], 
@@ -164,42 +168,30 @@ const VolunteerMatching = () => {
   
       setPerson(updatedVolunteers);  
   
-      await updateEventPeople(currentEvent.id, updatedPeople, currentEvent.name, selectedPeople); 
+      updatedPeople = selectedPeople;
+      
+      await updateEventPeople(currentEvent.id, updatedPeople, currentEvent.date, []); 
   
       closeModal();
     }
   };
 
   // Update the backend with the new assigned people
-  const updateEventPeople = async (eventId: number, updatedPeople: string[], eventName: string, peopleToDelete: string[]) => {
-    try {
-        // Call the API to update the events
-        const response = await fetch(`http://localhost:5000/api/events/${eventId}/update-people`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ peopleAssigned: updatedPeople, eventName, peopleToDelete }),
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to update event');
-        }
-
-        const data = await response.json();
-        console.log('Event and volunteers updated:', data);
-    } catch (error) {
-        console.error('Error updating event:', error);
-    }
-
+  const updateEventPeople = async (eventId: number, updatedPeople: number[], eventDate: string, peopleToDelete: number[]) => {
     try {
       // Call the API to update the volunteers
+      console.log("Updated People:", updatedPeople);
       const response = await fetch(`http://localhost:5000/api/volunteer/update-people`, {
           method: 'PUT',
           headers: {
               'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ peopleAssigned: updatedPeople, eventName, peopleToDelete }),
+          body: JSON.stringify({
+            eventId: eventId,               
+            peopleAssigned: updatedPeople,  
+            eventDate: eventDate,
+            peopleToDelete: peopleToDelete,  
+        }),
       });
 
       if (!response.ok) {
@@ -224,6 +216,18 @@ const VolunteerMatching = () => {
     return <div>Error: {error}</div>;
   }
 
+  // Convert number into urgency
+  const getUrgencyLabel = (urgency: number) => {
+    switch (urgency) { 
+      case 1:return 'Low';
+      case 2:return 'Medium';
+      case 3:return 'High';
+      case 4:return 'Very High';
+      case 5:return 'Urgent';
+      default:return 'Unknown';
+    }
+  };
+
   return (
     <div className="p-4 max-w-4xl mx-auto bg-white shadow-md rounded-lg">
       <Header />
@@ -244,7 +248,7 @@ const VolunteerMatching = () => {
                   <span className="flex justify-between items-center pl-4 text-sm text-gray-500 text-left">
                     <div className="pr-5">
                       <p>{event.description}</p>
-                      <p><b>Urgency:</b> {event.urgency}</p>
+                      <p><b>Urgency:</b> {getUrgencyLabel(event.urgency)}</p>
                       <p><b>Skills Required:</b> {event.skills.join(', ')}</p>
                     </div>
                   </span>
@@ -260,9 +264,14 @@ const VolunteerMatching = () => {
                     <div className="text-left pl-4 text-sm">
                       <p><b>People Assigned:</b></p>
                       <ul className="list-disc pl-5 text-gray-600 text-left">
-                        {event.peopleAssigned.map((person, index) => (
-                          <li key={index}>{person}</li>
-                        ))}
+                        {event.peopleAssigned.map((assignedId, index) => {
+                          const volunteer = person.find(v => v.id === assignedId);
+                          return (
+                            <li key={index}>
+                              {volunteer ? volunteer.name : 'Unknown Volunteer'}
+                            </li>
+                          );
+                        })}
                       </ul>
                     </div>
                   )}
@@ -324,20 +333,23 @@ const VolunteerMatching = () => {
                 <>
                   <p><b>Current People Assigned:</b></p>
                   <ul className="flex flex-col">
-                    {currentEvent?.peopleAssigned?.map((person, index) => (
-                      <div key={index} className="flex">
+                    {currentEvent?.peopleAssigned?.map(assignedId => {
+                    const volunteer = person.find(v => v.id === assignedId);
+                    return (
+                      <li key={assignedId} className="flex items-center">
                         <span className = "w-1/3"></span>
-                        <li className="flex items-start">
+                        <label>
                           <input
                             type="checkbox"
-                            checked={selectedPeople.includes(person)}
-                            onChange={() => handleCheckboxChange(person)}
-                            className="mr-2 mt-2"
+                            checked={selectedPeople.includes(assignedId)}
+                            onChange={() => handleCheckboxChange(assignedId)}
+                            className="mr-2"
                           />
-                          <span>{person}</span>
-                        </li>
-                      </div>
-                    ))}
+                          {volunteer ? volunteer.name : 'Unknown Volunteer'}
+                        </label>
+                      </li>
+                    );
+                  })}
                   </ul>
                   <button
                     className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
@@ -359,8 +371,8 @@ const VolunteerMatching = () => {
                             <li className="flex items-start">
                               <input
                                 type="checkbox"
-                                checked={selectedPeople.includes(volunteer.name)}
-                                onChange={() => handleCheckboxChange(volunteer.name)}
+                                checked={selectedPeople.includes(volunteer.id)}
+                                onChange={() => handleCheckboxChange(volunteer.id)}
                                 className="mr-2 mt-2"
                               />
                               <span>{volunteer.name}</span>

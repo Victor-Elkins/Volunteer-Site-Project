@@ -3,39 +3,6 @@ const { body, param, validationResult } = require('express-validator');
 const router = express.Router();
 const db = require('../db'); 
 
-// Hardcoded events array (Should be replaced with database)
-let events = [
-    {
-        id: 1,
-        name: 'Event One',
-        date: '10/10/2024',
-        description: 'This is the first event.',
-        location: 'New York',
-        urgency: 'High',
-        skills: ['Physically Fit'],
-        peopleAssigned: ['John Doe', 'Jane Smith']
-    },
-    {
-        id: 2,
-        name: 'Event Two',
-        date: '10/15/2024',
-        description: 'This is the second event.',
-        location: 'Los Angeles',
-        urgency: 'Medium',
-        skills: ['Problem-Solving'],
-        peopleAssigned: ['Jane Smith', ]
-    },
-    {
-        id: 3,
-        name: 'Event Three',
-        date: '10/20/2024',
-        description: 'This is the third event.',
-        location: 'Chicago',
-        urgency: 'Low',
-        skills: ['Marketing', 'Public Speaking'],
-        peopleAssigned: ['Derrick Kidd']
-    }
-];
 
 // POST route to create a new event
 router.post(
@@ -56,7 +23,7 @@ router.post(
       .isArray({ min: 1 }).withMessage('At least one skill must be selected'),
     body('urgency')
       .notEmpty().withMessage('Urgency is required')
-      .isString().withMessage('Urgency must be a string'),
+      .isNumeric().withMessage('Urgency must be a number'),
     body('date')
       .notEmpty().withMessage('Event date is required')
       .isString().withMessage('Event date must be a string'),
@@ -74,21 +41,9 @@ router.post(
       return res.status(400).json({ message: 'The event date cannot be in the past.' });
     }
 
-    // const newEvent = {
-    //   id: events.length + 1, 
-    //   name: req.body.name,
-    //   description: req.body.description,
-    //   location: req.body.location,
-    //   skills: req.body.skills,
-    //   urgency: req.body.urgency,
-    //   date: req.body.date,
-    // };
-    
-    // events.push(newEvent);
-
     // Prepare data for insertion
     const { name, description, location, skills, urgency } = req.body;
-    const skillsString = skills.join(', '); // Convert skills array to a string
+    const skillsString = skills.join(','); // Convert skills array to a string
 
     // SQL query to insert a new event
     const insertQuery = `
@@ -133,15 +88,6 @@ router.delete(
     }
 
     const id = parseInt(req.params.id);
-    // const eventIndex = events.findIndex(event => event.id === id);
-
-    // if (eventIndex === -1) {
-    //   return res.status(400).json({ message: 'Event not found' });
-    // }
-
-    // events.splice(eventIndex, 1); 
-
-    // SQL query to delete the event by id
     const deleteQuery = `DELETE FROM EventDetails WHERE id = ?`;
 
     db.run(deleteQuery, [id], function (err) {
@@ -160,40 +106,23 @@ router.delete(
   }
 );
 
-// PUT route to update people assigned to an event
-router.put(
-  '/:id/update-people',
-  [
-    param('id').isInt({ gt: 0 }).withMessage('ID must be a positive integer'),
-    body('peopleAssigned').isArray().withMessage('peopleAssigned must be an array')
-  ],
-  (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
 
-    const eventId = parseInt(req.params.id);
-    const { peopleAssigned } = req.body;
-
-    const event = events.find(event => event.id === eventId);
-    if (!event) {
-      return res.status(400).json({ message: 'Event not found.' });
-    }
-    event.peopleAssigned = peopleAssigned;
-
-    res.status(200).json({ message: 'People assigned updated successfully', event });
-  }
-);
-
-// // Get route to return all events
-// router.get('/', (req, res) => {
-//   res.status(200).json(events);
-// });
-
-// Get route to return all events
+// Get route to return all events with assigned volunteers
 router.get('/', (req, res) => {
-  const query = `SELECT id, event_name AS name, event_date AS date, description, location, urgency, required_skills AS skills FROM EventDetails`;
+  const query = `
+    SELECT 
+      e.id, 
+      e.event_name AS name, 
+      e.event_date AS date, 
+      e.description, 
+      e.location, 
+      e.urgency, 
+      e.required_skills AS skills,
+      GROUP_CONCAT(vh.user_id) AS peopleAssigned  -- Change here to use user_id
+    FROM EventDetails e
+    LEFT JOIN VolunteerHistory vh ON e.id = vh.event_id
+    GROUP BY e.id
+  `;
 
   db.all(query, [], (err, rows) => {
     if (err) {
@@ -205,11 +134,12 @@ router.get('/', (req, res) => {
     const events = rows.map(row => ({
       id: row.id,
       name: row.name,
-      date: new Date(row.date).toISOString().split('T')[0], 
+      date: new Date(row.date),
       description: row.description,
       location: row.location,
       urgency: row.urgency,
-      skills: row.skills.split(', ') // Convert string back to array
+      skills: row.skills.split(','), // Convert string back to array
+      peopleAssigned: row.peopleAssigned ? row.peopleAssigned.split(',').map(Number) : [] // Convert to array of IDs
     }));
 
     res.status(200).json(events);
@@ -235,7 +165,7 @@ router.put(
       .isArray({ min: 1 }).withMessage('At least one skill must be selected'),
     body('urgency')
       .notEmpty().withMessage('Urgency is required')
-      .isString().withMessage('Urgency must be a string'),
+      .isNumeric().withMessage('Urgency must be a string'),
     body('date')
       .notEmpty().withMessage('Event date is required')
       .isString().withMessage('Event date must be a string'),
@@ -253,20 +183,13 @@ router.put(
       return res.status(400).json({ message: 'The event date cannot be in the past.' });
     }
 
-    // const updatedEvent = {
-    //   ...events[eventIndex],
-    //   ...req.body, 
-    // };
-
-    // events[eventIndex] = updatedEvent;
-
     const eventId = parseInt(req.params.id);
     const { name, description, location, skills, urgency } = req.body;
-    const skillsString = skills.join(', '); 
+    const skillsString = skills.join(','); 
 
     // SQL query to update an event by ID
     const updateQuery = `
-      UPDATE EventDetails5
+      UPDATE EventDetails
       SET event_name = ?, description = ?, location = ?, required_skills = ?, urgency = ?, event_date = ?
       WHERE id = ?
     `;
