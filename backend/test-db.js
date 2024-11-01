@@ -18,11 +18,10 @@ const addUserCredentials = () => {
   }
 };
 
-// Function to add random data to UserProfile (linked to UserCredentials)
 const addUserProfile = () => {
   const insertProfileSql = `
-    INSERT INTO UserProfile (id, full_name, address, city, state, zipcode, skills, preferences, availability) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+    INSERT INTO UserProfile (id, full_name, address_1, address_2, city, state, zipcode, skills, preferences, availability) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `;
 
   const states = ['CA', 'NY', 'TX', 'FL', 'GA'];
@@ -36,7 +35,8 @@ const addUserProfile = () => {
     
     users.forEach((user) => {
       const fullName = faker.person.fullName();
-      const address = faker.location.streetAddress();
+      const address_1 = faker.location.streetAddress();
+      const address_2 = faker.location.secondaryAddress();
       const city = faker.location.city();
       const state = states[Math.floor(Math.random() * states.length)];
       const zipcode = faker.location.zipCode();
@@ -44,7 +44,7 @@ const addUserProfile = () => {
       const preferences = preferencesList[Math.floor(Math.random() * preferencesList.length)];
       const availability = 'Weekdays';
 
-      db.run(insertProfileSql, [user.id, fullName, address, city, state, zipcode, skills, preferences, availability], function(err) {
+      db.run(insertProfileSql, [user.id, fullName, address_1, address_2, city, state, zipcode, skills, preferences, availability], function(err) {
         if (err) {
           return console.error('Error inserting into UserProfile:', err.message);
         }
