@@ -3,6 +3,7 @@ import '../index.css'; // Main CSS
 import './Home.css'; // Home-specific CSS (if any)
 import Header from '../Components/Header';
 import Footer from '../Components/Footer';
+import ReportGenerator from '../Components/ReportGenerator';
 const Home = () => {
   return (
     
@@ -10,6 +11,7 @@ const Home = () => {
       <Header />
       <h1 className="text-xl font-bold mb-4">Welcome to Volunteer Events</h1>
       <p>Here you can find and manage your volunteer events.</p>
+      <ReportGenerator />
       <Footer />
     </div>
     

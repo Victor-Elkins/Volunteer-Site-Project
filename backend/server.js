@@ -9,6 +9,7 @@ const authRoutes = require('./routes/auth');
 const userProfileRoute = require('./routes/userProfile');
 const eventsRoutes = require('./routes/events');
 const volunteerRoutes = require('./routes/volunteer');
+const reportRoutes = require('./routes/reports');
 
 // Enable CORS for all routes
 const app = express();
@@ -33,6 +34,7 @@ app.use('/api/auth', authRoutes); // Authorization route
 app.use('/api/userProfile', userProfileRoute); // User profile route
 app.use('/api/events', eventsRoutes); // Event route
 app.use('/api/volunteer', volunteerRoutes(db)); // Volunteer route
+app.use('/api/reports', reportRoutes); // Report route
 
 const PORT = process.env.PORT || 5000; // Use PORT from environment or default to 5000
 app.listen(PORT, () => {
