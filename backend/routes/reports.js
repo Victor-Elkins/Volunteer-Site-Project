@@ -92,3 +92,28 @@ router.get('/generate-pdf/:type', async (req, res) => {
   }
 });
 
+// Route to generate a CSV report
+router.get('/generate-csv/:type', async (req, res) => {
+  const { type } = req.params;
+  let data;
+
+  try {
+    if (type === 'volunteer-history') {
+      data = await getVolunteerHistory();
+    } else if (type === 'event-assignments') {
+      data = await getEventAssignments();
+    } else {
+      return res.status(400).json({ message: 'Invalid report type' });
+    }
+
+    const csv = new Parser().parse(data);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=${type}.csv`);
+    res.send(csv);
+  } catch (error) {
+    console.error('Error generating CSV:', error.message);
+    res.status(500).json({ message: 'Error generating CSV' });
+  }
+});
+
+module.exports = router;
