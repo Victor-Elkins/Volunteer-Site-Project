@@ -75,8 +75,6 @@ router.post(
         const userEmail = req.session.user.username;
         const userId = req.session.user.id;
 
-        const userRow = await db.get('SELECT id FROM UserCredentials WHERE username = ?', [userEmail]);
-
         try {
             // Insert or update user profile
             await db.run(
