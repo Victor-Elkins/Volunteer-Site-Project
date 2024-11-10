@@ -51,7 +51,8 @@ const EventForm = () => {
                     throw new Error('Failed to fetch events');
                 }
                 const data: Event[] = await response.json();
-                setEvents(data);
+                const sortedEvents = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                setEvents(sortedEvents);
             } catch (error) {
                 console.error('Error fetching events:', error);
             }
@@ -263,7 +264,9 @@ const EventForm = () => {
                             </span>
                             <span className="flex justify-between items-center pl-4 pb-2 text-sm text-gray-500 text-left">
                                 <div className="pr-20">
-                                    <p>{event.date.toString().split('T')[0]},  {event.location}</p>
+                                <p style={{ color: new Date(event.date) < new Date() ? 'red' : 'black' }}>
+                                    {event.date.toString().split('T')[0]}<span className="text-gray-500">, {event.location}</span>
+                                </p>
                                     <p>{event.description}</p>
                                     <p><b>Urgency:</b> {getUrgencyLabel(event.urgency)}</p>
                                     <p><b>Skills Required:</b> {event.skills.join(', ')}</p>

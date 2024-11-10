@@ -57,3 +57,38 @@ router.get('/event-assignments', async (req, res) => {
     res.status(500).json({ message: 'Database error' });
   }
 });
+
+// Route to generate a PDF report
+router.get('/generate-pdf/:type', async (req, res) => {
+  const { type } = req.params;
+  let data;
+
+  try {
+    if (type === 'volunteer-history') {
+      data = await getVolunteerHistory();
+    } else if (type === 'event-assignments') {
+      data = await getEventAssignments();
+    } else {
+      return res.status(400).json({ message: 'Invalid report type' });
+    }
+
+    const doc = new PDFDocument();
+    res.setHeader('Content-Disposition', `attachment; filename=${type}.pdf`);
+    res.setHeader('Content-Type', 'application/pdf');
+
+    doc.pipe(res);
+    doc.fontSize(18).text(`Report: ${type.replace('-', ' ').toUpperCase()}`, { align: 'center' });
+    doc.moveDown();
+
+    data.forEach(item => {
+      doc.fontSize(12).text(JSON.stringify(item, null, 2));
+      doc.moveDown();
+    });
+
+    doc.end();
+  } catch (error) {
+    console.error('Error generating PDF:', error.message);
+    res.status(500).json({ message: 'Error generating PDF' });
+  }
+});
+
