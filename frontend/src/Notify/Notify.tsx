@@ -70,7 +70,7 @@ const Notify: React.FC = () => {
               notifications.map((entry) => (
                 <tr key={entry.id}>
                   <td className="border border-gray-300 px-4 py-2">{entry.event}</td>
-                  <td className="border border-gray-300 px-4 py-2">{entry.date}</td>
+                  <td className="border border-gray-300 px-4 py-2">{entry.date.split('T')[0]}</td>
                 </tr>
               ))
             )}

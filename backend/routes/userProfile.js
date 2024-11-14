@@ -77,6 +77,7 @@ router.post(
 
         try {
             // Insert or update user profile
+            const skillsString = skills.join(',');
             await db.run(
                 `INSERT INTO UserProfile (id, full_name, address_1, address_2, city, state, zipcode, skills, preferences,
                                           availability)
@@ -99,7 +100,7 @@ router.post(
                     city,
                     state,
                     zipcode,
-                    JSON.stringify(skills),
+                    skillsString,
                     preferences || '',
                     JSON.stringify(availability),
                 ]
