@@ -45,7 +45,7 @@ export default function ProfileEdit() {
                         setPreferences(data.preferences || "");
 
                         // Parse skills JSON string and set it
-                        const parsedSkills = JSON.parse(data.skills || "[]");
+                        const parsedSkills = (data.skills || "").split(',').filter(skill => skill);
                         setSelectedSkills(parsedSkills.map((skill: string) => ({name: skill})));
 
                         // Parse availability JSON string and set it
